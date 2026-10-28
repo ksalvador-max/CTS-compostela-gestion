@@ -1,6 +1,6 @@
 # CTS Compostela · Herramientas de gestión del proyecto
 
-Planning y herramienta presupuestaria del contrato «Diseño e Implementación del Modelo de Gestión del CTS Compostela» (FONATUR), conforme al anexo técnico definitivo del 23-10-2026.
+Planning y herramienta presupuestaria del contrato «Diseño e Implementación del Modelo de Gestión del CTS Compostela» (FONATUR), conforme al anexo técnico del 26-10-2026. El escenario publicado procede del libro `CTS_Compostela_Despliegue_Operacion.xlsx` (despliegue de tareas, dedicación y misiones).
 
 | Página | Uso | Contenido |
 |---|---|---|
@@ -19,6 +19,7 @@ Ambas páginas leen el mismo modelo (`assets/modelo-publicado.js`) y el mismo mo
 
 ## Reglas de cálculo
 - Línea temporal M1–M14, sin años naturales. Importes en EUR, con salida en MXN según el tipo de cambio parametrizado.
-- Días de campo = días de desplazamiento (calculados); días de gabinete = editables, repartidos por meses según los pesos del servicio, con corrección manual.
+- Misiones a México con tramo en FONATUR (CDMX) y tramo en el territorio; cada participante reparte sus días de campo entre los servicios que atiende.
+- Días de campo = días en misiones (calculados); días de gabinete = editables, repartidos por meses según los pesos del servicio (derivados de las ventanas de las tareas), con corrección manual.
 - Precio neto = (costes directos + estructura + contingencia) / (1 − margen − coste de fianza).
 - Devengado mensual proporcional al coste directo del mes. Cobro en M + desfase (emisión + conformidad + 17 días hábiles de pago).

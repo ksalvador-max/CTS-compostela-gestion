@@ -50,7 +50,7 @@
   function renderTodo() {
     R = calcular(M);
     const y = window.scrollY;
-    renderKbar(); renderResumen(); renderParametros(); renderEquipo(); renderViajes(); renderDistribucion(); renderFacturacion(); renderEscenarios();
+    renderKbar(); renderResumen(); renderParametros(); renderEquipo(); renderMisiones(); renderDistribucion(); renderFacturacion(); renderEscenarios();
     $("#sub-meta").textContent = `${M.meta.nombre} · ${M.meta.fuenteAnexo} · actualizado ${M.meta.actualizado}`;
     window.scrollTo(0, y);
   }
@@ -74,12 +74,13 @@
   document.addEventListener("change", (e) => {
     const el = e.target;
     if (el.dataset.bind || el.dataset.adj) { renderTodo(); return; }
-    if (el.dataset.trip) {
-      const v = M.viajes[+el.dataset.trip];
-      const pid = el.dataset.pid;
-      v.personas = v.personas || [];
-      if (el.checked && !v.personas.includes(pid)) v.personas.push(pid);
-      if (!el.checked) v.personas = v.personas.filter((x) => x !== pid);
+    if (el.dataset.msvc != null) {
+      const mi = M.misiones[+el.dataset.msvc];
+      mi.servicios = mi.servicios || [];
+      if (el.checked && !mi.servicios.includes(el.dataset.svc)) mi.servicios.push(el.dataset.svc);
+      if (!el.checked) mi.servicios = mi.servicios.filter((x) => x !== el.dataset.svc);
+      const orden = M.servicios.map((x) => x.id);
+      mi.servicios.sort((x, y) => orden.indexOf(x) - orden.indexOf(y));
       persistir(); renderTodo();
     }
     if (el.id === "sel-svc-det") { svcDetalle = el.value; renderDistribucion(); }
@@ -89,7 +90,7 @@
     const b = e.target.closest("[data-act]");
     if (!b) return;
     const a = b.dataset.act, i = b.dataset.i != null ? +b.dataset.i : null;
-    if (["delPersona", "delViaje", "reset", "cargarEscenario"].includes(a) && !b.dataset.armed) {
+    if (["delPersona", "delMision", "reset", "cargarEscenario"].includes(a) && !b.dataset.armed) {
       b.dataset.armed = "1"; b.dataset.txt = b.textContent;
       b.textContent = a.startsWith("del") ? "¿Eliminar?" : "Pulsa de nuevo para confirmar";
       setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.txt; } }, 3000);
@@ -118,22 +119,22 @@
       const p = M.equipo[i];
       M.equipo.splice(i, 1);
       delete M.gabinete[p.id];
-      M.viajes.forEach((v) => { v.personas = (v.personas || []).filter((x) => x !== p.id); });
+      (M.misiones || []).forEach((mi) => { delete (mi.participantes || {})[p.id]; });
       Object.keys(M.ajustes).forEach((k) => { if (k.startsWith(p.id + "|")) delete M.ajustes[k]; });
       persistir(); renderTodo();
     },
-    addViaje() {
-      let k = M.viajes.length + 1, id = "V" + String(k).padStart(2, "0");
-      while (M.viajes.some((v) => v.id === id)) { k++; id = "V" + String(k).padStart(2, "0"); }
-      M.viajes.push({ id, mes: 1, svc: "S1", destino: "COMP", dias: 5, personas: [], concepto: "Nuevo desplazamiento" });
+    addMision() {
+      M.misiones = M.misiones || [];
+      let k = M.misiones.length + 1, id = "MI-" + k;
+      while (M.misiones.some((v) => v.id === id)) { k++; id = "MI-" + k; }
+      M.misiones.push({ id, mes: 1, nombre: "Nueva misión", objeto: "", tareasCdmx: [], tareasComp: [], servicios: ["S1"], participantes: {} });
       persistir(); renderTodo();
     },
-    delViaje(i) {
-      M.viajes.splice(i, 1); persistir(); renderTodo();
+    delMision(i) {
+      M.misiones.splice(i, 1); persistir(); renderTodo();
     },
-    ordenarViajes() {
-      M.viajes.sort((a, b) => num(a.mes) - num(b.mes));
-      M.viajes.forEach((v, i) => { v.id = "V" + String(i + 1).padStart(2, "0"); });
+    ordenarMisiones() {
+      M.misiones.sort((a, b) => num(a.mes) - num(b.mes));
       persistir(); renderTodo();
     },
     limpiarAjustes() {
@@ -212,7 +213,7 @@
         <div class="card"><div class="card-h">Composición del precio</div><div class="card-b flush"><table>
           <tr><th>Concepto</th><th class="n">EUR</th><th class="n">MXN</th><th class="n">% PVP neto</th></tr>
           ${fila("Honorarios del equipo", R.honorarios, "sub")}
-          ${fila("Desplazamientos", R.viajesTot, "sub")}
+          ${fila("Misiones a México (desplazamientos)", R.viajesTot, "sub")}
           ${fila("Subcontratas (FutureBrand)", R.subTot, "sub")}
           ${fila("Costes directos", R.directos, "tot")}
           ${fila(`Estructura (${fmtNum(P.estructura, 1)} %)`, R.estructura, "sub")}
@@ -336,13 +337,13 @@
     $("#p-equipo").innerHTML = `
       <h2>Equipo y dedicación</h2>
       <p class="lead">Perfiles según el numeral 4.1 del anexo: director de proyecto, asesor estratégico, tres consultores senior y especialistas. Los especialistas se tratan como una bolsa única de días («consultor especialista»), cuya distribución entre personas se definirá más adelante. La tarifa individual es opcional; si se deja vacía se aplica la del rol.</p>
-      <div class="card"><div class="card-h">Equipo <span class="hint">Base habitual: determina el coste de cada desplazamiento</span></div><div class="card-b flush scroll"><table>
+      <div class="card"><div class="card-h">Equipo <span class="hint">Base habitual: determina el coste de cada misión</span></div><div class="card-b flush scroll"><table>
         <tr><th>Nombre</th><th>Rol</th><th>Base</th><th class="n">Tarifa €/d</th><th class="n">Campo</th><th class="n">Gabinete</th><th class="n">Total días</th><th class="n">Honorarios</th></tr>
         ${filasEquipo}
         <tr class="tot"><td colspan="4">Total</td><td class="n">${fmtDias(R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales - R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales)}</td><td class="n">${fmtEur(R.honorarios)}</td></tr>
       </table></div></div>
 
-      <div class="card"><div class="card-h">Días por servicio · campo y gabinete (numeral 7) <span class="hint">Campo = días de desplazamiento, calculados desde la pestaña Desplazamientos · Gabinete editable</span></div>
+      <div class="card"><div class="card-h">Días por servicio · campo y gabinete (numeral 7) <span class="hint">Campo = días en misiones, repartidos por servicio · Gabinete editable</span></div>
         <div class="card-b flush scroll"><table class="n7">
           <tr><th rowspan="2">Persona</th>${head1}<th class="grp" colspan="3">Total</th></tr>
           <tr>${head2}<th class="n bl">Campo</th><th class="n">Gabinete</th><th class="n">Total</th></tr>
@@ -351,39 +352,60 @@
         </table></div></div>`;
   }
 
-  /* ── Desplazamientos ─────────────────────────────────────────── */
-  function renderViajes() {
+  /* ── Misiones a México ───────────────────────────────────────── */
+  function renderMisiones() {
     const mesOpts = meses().map((i) => [i, ml(i)]);
-    const svcOpts = M.servicios.map((s) => [s.id, s.id]);
-    const destOpts = [["COMP", "CTS Compostela"], ["CDMX", "FONATUR · CDMX"]];
-    const filas = R.viajes.map((v, i) => `<tr>
-      <td class="mono">${esc(v.id)}</td>
-      <td style="width:84px">${sel(`viajes.${i}.mes`, mesOpts)}</td>
-      <td style="width:76px">${sel(`viajes.${i}.svc`, svcOpts)}</td>
-      <td style="width:150px">${sel(`viajes.${i}.destino`, destOpts)}</td>
-      <td style="width:64px">${inp(`viajes.${i}.dias`, { step: 1, min: 1 })}</td>
-      <td style="min-width:260px">${inp(`viajes.${i}.concepto`, { type: "text" })}</td>
-      <td style="min-width:300px">${M.equipo.map((p) => `<label class="pchk"><input type="checkbox" data-trip="${i}" data-pid="${p.id}"${(v.personas || []).includes(p.id) ? " checked" : ""}>${esc(p.corto || p.nombre)}</label>`).join("")}</td>
-      <td class="n">${(v.personas || []).length}</td>
-      <td class="n">${fmtEur(v.total)}</td>
-      <td><button class="x" data-act="delViaje" data-i="${i}" title="Eliminar">×</button></td></tr>`).join("");
-    const nES = R.viajes.reduce((s, v) => s + v.vuelos, 0);
+    const repTxt = (rep) => Object.entries(rep).map(([s, w]) => `${s} ${Math.round(w * 100)} %`).join(" · ");
+    const tarjetas = R.viajes.map((v, i) => {
+      const filas = M.equipo.map((p) => {
+        const d = v.det.find((x) => x.pid === p.id);
+        const base = `misiones.${i}.participantes.${p.id}`;
+        return `<tr${d ? "" : ' class="sub"'}>
+          <td><b>${esc(p.corto || p.id)}</b> <span class="small muted">${esc(p.nombre)}</span></td>
+          <td class="small muted">${esc(M.bases[p.base] || "")}</td>
+          <td style="width:80px">${inp(`${base}.cdmx`, { step: 1, cls: "w70" })}</td>
+          <td style="width:80px">${inp(`${base}.comp`, { step: 1, cls: "w70" })}</td>
+          <td class="n">${d ? fmtDias(d.dias) : ""}</td>
+          <td class="small">${d ? repTxt(d.rep) : ""}</td>
+          <td class="n">${d ? fmtEur(d.total) : ""}</td></tr>`;
+      }).join("");
+      const tareas = (lst) => (lst || []).map((t) => `<span class="chip">${esc(t)}</span>`).join("") || '<span class="small muted">—</span>';
+      return `<div class="card"><div class="card-h"><span>${esc(v.id)} · ${esc(v.nombre)}</span><span class="hint">${ml(num(v.mes))} · ${v.personas} personas · ${v.vuelos} vuelos · ${fmtEur(v.total)}</span></div>
+        <div class="card-b">
+          <div class="grid" style="grid-template-columns:110px 1fr auto;gap:12px;align-items:end">
+            <div><div class="small muted">Mes</div>${sel(`misiones.${i}.mes`, mesOpts)}</div>
+            <div><div class="small muted">Nombre</div>${inp(`misiones.${i}.nombre`, { type: "text" })}</div>
+            <div><button class="btn danger" data-act="delMision" data-i="${i}">Eliminar misión</button></div>
+          </div>
+          <div style="margin-top:10px"><div class="small muted">Objeto</div>${inp(`misiones.${i}.objeto`, { type: "text" })}</div>
+          <div class="grid g3" style="margin-top:10px;gap:10px">
+            <div><div class="small muted">Servicios que atiende</div>${M.servicios.map((s) => `<label class="pchk"><input type="checkbox" data-msvc="${i}" data-svc="${s.id}"${(v.servicios || []).includes(s.id) ? " checked" : ""}>${s.id}</label>`).join("")}</div>
+            <div><div class="small muted">Tareas en FONATUR (CDMX)</div>${tareas(v.tareasCdmx)}</div>
+            <div><div class="small muted">Tareas en el territorio</div>${tareas(v.tareasComp)}</div>
+          </div>
+        </div>
+        <div class="card-b flush scroll"><table>
+          <tr><th>Perfil</th><th>Base</th><th>Días CDMX</th><th>Días territorio</th><th class="n">Total</th><th>Reparto del campo por servicio</th><th class="n">Coste</th></tr>
+          ${filas}
+          <tr class="tot"><td colspan="4">Total misión</td><td class="n">${fmtDias(v.dias)}</td><td>${Object.entries(v.campoSvc).map(([s, d]) => `${s} ${fmtDias(d)} d`).join(" · ")}</td><td class="n">${fmtEur(v.total)}</td></tr>
+        </table></div></div>`;
+    }).join("");
+    const resumen = R.viajes.map((v) => `<tr><td class="mono">${esc(v.id)}</td><td class="mono">${ml(num(v.mes))}</td><td>${esc(v.nombre)}</td><td>${(v.servicios || []).map((s) => svcTag(s)).join(" ")}</td><td class="n">${v.personas}</td><td class="n">${v.vuelos}</td><td class="n">${fmtDias(v.dias)}</td><td class="n">${fmtEur(v.total)}</td></tr>`).join("");
     $("#p-viajes").innerHTML = `
-      <h2>Desplazamientos</h2>
-      <p class="lead">Presencialidad entendida como desplazamiento desde la base habitual: equipo de España a México y equipo de México al territorio del CTS. Cada día de desplazamiento cuenta como día de campo de su servicio.</p>
+      <h2>Misiones a México</h2>
+      <p class="lead">Viajes combinados que atienden varios servicios y entregables en una misma visita: un tramo en FONATUR (CDMX) y otro en el territorio del CTS. Los días de cada participante cuentan como días de campo y se reparten entre servicios según las tareas que atiende. Si añades a un participante nuevo, sus días se reparten a partes iguales entre los servicios marcados en la misión.</p>
       <div class="kpis">
-        <div class="kpi"><div class="l">Desplazamientos</div><div class="v">${R.viajes.length}</div><div class="s">${R.personasViaje} personas-viaje</div></div>
-        <div class="kpi"><div class="l">Vuelos España ↔ México</div><div class="v">${nES}</div></div>
+        <div class="kpi"><div class="l">Misiones</div><div class="v">${R.viajes.length}</div><div class="s">${R.personasViaje} personas-viaje</div></div>
+        <div class="kpi"><div class="l">Vuelos España ↔ México</div><div class="v">${R.vuelos}</div></div>
         <div class="kpi"><div class="l">Días de campo</div><div class="v">${fmtDias(R.diasCampo)}</div></div>
         <div class="kpi"><div class="l">Coste total</div><div class="v">${fmtEur(R.viajesTot)}</div><div class="s">${fmtMxn(R.viajesTot * tc())}</div></div>
       </div>
-      <div class="card"><div class="card-h">Calendario de desplazamientos <span class="hint">Alojamiento: días − 1 noches · Manutención: días completos</span></div>
-        <div class="card-b flush scroll"><table>
-          <tr><th>ID</th><th>Mes</th><th>Serv.</th><th>Destino</th><th>Días</th><th>Concepto</th><th>Participantes</th><th class="n">Nº</th><th class="n">Coste</th><th></th></tr>
-          ${filas}
-          <tr class="tot"><td colspan="7">Total</td><td class="n">${R.personasViaje}</td><td class="n">${fmtEur(R.viajesTot)}</td><td></td></tr>
-        </table></div>
-        <div class="card-b btns"><button class="btn sec" data-act="addViaje">+ Añadir desplazamiento</button><button class="btn sec" data-act="ordenarViajes">Ordenar por mes y renumerar</button></div></div>`;
+      <div class="card"><div class="card-h">Calendario de misiones <span class="hint">Transporte según la base · alojamiento: días − 1 noches · manutención: días completos</span></div><div class="card-b flush scroll"><table>
+        <tr><th>Misión</th><th>Mes</th><th>Nombre</th><th>Servicios</th><th class="n">Personas</th><th class="n">Vuelos</th><th class="n">Días</th><th class="n">Coste</th></tr>
+        ${resumen}
+        <tr class="tot"><td colspan="4">Total</td><td class="n">${R.personasViaje}</td><td class="n">${R.vuelos}</td><td class="n">${fmtDias(R.diasCampo)}</td><td class="n">${fmtEur(R.viajesTot)}</td></tr>
+      </table></div><div class="card-b btns"><button class="btn sec" data-act="addMision">+ Añadir misión</button><button class="btn sec" data-act="ordenarMisiones">Ordenar por mes</button></div></div>
+      ${tarjetas}`;
   }
 
   /* ── Distribución mensual ────────────────────────────────────── */
@@ -405,11 +427,11 @@
 
     const sd = svcDetalle;
     const det = M.equipo.filter((p) => R.dias[p.id][sd] > 0 || Object.keys(M.ajustes).some((k) => k.startsWith(p.id + "|" + sd + "|"))).map((p) => {
-      const campoM = R.viajes.filter((v) => v.svc === sd && (v.personas || []).includes(p.id));
+
       const celdas = ms.map((i) => {
         const k = `${p.id}|${sd}|${i}`;
         const tot = R.dist[p.id][sd][i - 1];
-        const c = sum(campoM.filter((v) => num(v.mes) === i).map((v) => num(v.dias)));
+        const c = sum(R.viajes.filter((v) => num(v.mes) === i).map((v) => { const d = v.det.find((x) => x.pid === p.id); return d ? d.dias * (d.rep[sd] || 0) : 0; }));
         const g = tot - c;
         const fijo = M.ajustes[k] != null;
         return `<td><input type="number" step="0.5" min="0" data-adj="${k}" class="${fijo ? "adj" : "ghost"}" value="${fijo ? M.ajustes[k] : ""}" placeholder="${g > 0.05 ? fmtDias(g) : "·"}">${c ? `<div class="small" style="text-align:right;color:var(--granate)">+${fmtDias(c)} c</div>` : ""}</td>`;
@@ -460,7 +482,7 @@
         <td class="c mono">${i + 1 <= R.N ? ml(i + 1) : "M" + (i + 1)}</td>
         <td class="c mono">${i + d <= R.N ? ml(i + d) : "M" + (i + d)}</td>
         <td>${s.entregables.map((c) => `<span class="chip e">${c}</span>`).join("")}${s.bajoDemanda.map((c) => `<span class="chip d">${c}</span>`).join("")}
-          <div class="small muted">${s.activos.join(" · ")}${s.viajes.length ? " · desplaz. " + s.viajes.join(", ") : ""}</div></td></tr>`;
+          <div class="small muted">${s.activos.join(" · ")}${s.viajes.length ? " · misión " + s.viajes.join(", ") : ""}</div></td></tr>`;
     }).join("");
     const H = R.horizonte;
     const tes = Array.from({ length: H }, (_, k) => `<tr><td class="mono">${k + 1 <= R.N ? ml(k + 1) : "M" + (k + 1)}</td><td class="n">${fmtEur(-R.salidasMes[k])}</td><td class="n">${fmtEur(R.cobrosMes[k])}</td><td class="n">${fmtEur(R.saldoMes[k])}</td><td class="n" style="color:${R.acumulado[k] < 0 ? "var(--err)" : "var(--ok)"}">${fmtEur(R.acumulado[k])}</td></tr>`).join("");

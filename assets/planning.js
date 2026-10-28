@@ -18,7 +18,6 @@
   const svc = (id) => M.servicios.find((s) => s.id === id);
   const persona = (id) => M.equipo.find((p) => p.id === id) || { nombre: id };
   const tag = (id, corto) => { const s = svc(id); return `<span class="svc"><i style="background:${s.color}"></i>${id}${corto ? " · " + esc(s.corto) : ""}</span>`; };
-  const destino = (d) => (d === "COMP" ? "CTS Compostela (Nayarit)" : "FONATUR · Ciudad de México");
 
   function hexA(hex, a) {
     const h = hex.replace("#", "");
@@ -55,8 +54,8 @@
     }).join("");
     const viajesFila = ms.map((i) => {
       const vs = R.viajes.filter((v) => num(v.mes) === i);
-      const n = sum(vs.map((v) => (v.personas || []).length));
-      return `<td class="cell">${vs.length ? `<span class="trip" title="${esc(vs.map((v) => v.id + " · " + v.concepto).join("\n"))}">${vs.length} · ${n} p.</span>` : ""}</td>`;
+      const n = sum(vs.map((v) => v.personas));
+      return `<td class="cell">${vs.length ? `<span class="trip" title="${esc(vs.map((v) => v.id + " · " + v.nombre).join("\n"))}">${vs.length} · ${n} p.</span>` : ""}</td>`;
     }).join("");
     const ej = M.entregablesEjecutivos;
     const ejFila = ms.map((i) => `<td class="cell">${ej && ej.mes === i ? `<div class="dia" style="background:#1A1A2E" title="${esc(ej.texto)}"></div>` : ""}</td>`).join("");
@@ -69,12 +68,12 @@
         <div class="kpi"><div class="l">Duración</div><div class="v">${R.N} meses</div></div>
         <div class="kpi"><div class="l">Servicios</div><div class="v">PT + 5</div></div>
         <div class="kpi"><div class="l">Entregables</div><div class="v">${M.entregables.length}</div><div class="s">+ entregables ejecutivos de cierre</div></div>
-        <div class="kpi"><div class="l">Desplazamientos</div><div class="v">${R.viajes.length}</div><div class="s">${fmtDias(R.diasCampo)} días de campo</div></div>
+        <div class="kpi"><div class="l">Misiones a México</div><div class="v">${R.viajes.length}</div><div class="s">${fmtDias(R.diasCampo)} días de campo</div></div>
       </div>
       <div class="card"><div class="card-b flush gantt"><table>
         <tr><th>Servicio</th>${ms.map((i) => `<th class="m">${ml(i)}</th>`).join("")}</tr>
         ${filas}
-        <tr><td class="lbl"><b>Desplazamientos</b><div class="small muted">Nº de desplazamientos · personas</div></td>${viajesFila}</tr>
+        <tr><td class="lbl"><b>Misiones a México</b><div class="small muted">Misiones · personas</div></td>${viajesFila}</tr>
         <tr><td class="lbl"><b>Entregables ejecutivos</b><div class="small muted">Síntesis ejecutiva y presentación de conclusiones</div></td>${ejFila}</tr>
         <tr><td class="lbl small muted">Entregables por mes</td>${porMesEnt.map((n) => `<td class="c mono small">${n || ""}</td>`).join("")}</tr>
       </table></div>
@@ -129,7 +128,7 @@
     const heat = R.porPersona.map((pp) => `<tr><td>${esc(persona(pp.id).nombre)}</td>${pp.mensual.map((d) => `<td class="h h${nivel(d)}">${d > 0.05 ? Math.round(d) : "·"}</td>`).join("")}</tr>`).join("");
     $("#p-dedicacion").innerHTML = `
       <h2>Equipo y dedicación</h2>
-      <p class="lead">Días de trabajo de cada integrante del equipo por servicio, distinguiendo días de campo (desplazamiento desde la base habitual) y días de gabinete.</p>
+      <p class="lead">Días de trabajo de cada integrante del equipo por servicio, distinguiendo días de campo (misiones fuera de la base habitual) y días de gabinete.</p>
       <div class="card"><div class="card-h">Días por servicio · campo y gabinete</div><div class="card-b flush scroll"><table class="n7">
         <tr><th rowspan="2">Integrante</th>${head1}<th class="grp" colspan="3">Total</th></tr>
         <tr>${head2}<th class="n bl">Campo</th><th class="n">Gab.</th><th class="n">Total</th></tr>
@@ -142,19 +141,27 @@
   }
 
   function renderDesplazamientos() {
-    const filas = R.viajes.slice().sort((a, b) => num(a.mes) - num(b.mes)).map((v) => `<tr><td class="mono">${ml(num(v.mes))}</td><td>${tag(v.svc)}</td><td>${esc(v.concepto)}</td><td>${destino(v.destino)}</td><td class="n">${v.dias}</td><td>${(v.personas || []).map((p) => esc(persona(p).nombre)).join(", ")}</td></tr>`).join("");
+    const tareas = (l) => (l || []).join(", ") || "—";
+    const filas = R.viajes.slice().sort((a, b) => num(a.mes) - num(b.mes)).map((v) => {
+      const cd = Math.max(0, ...v.det.map((d) => d.cdmx)), co = Math.max(0, ...v.det.map((d) => d.comp));
+      return `<tr><td class="mono"><b>${esc(v.id)}</b><div class="small muted">${ml(num(v.mes))}</div></td>
+        <td><b>${esc(v.nombre)}</b><div class="small" style="margin-top:3px">${esc(v.objeto)}</div></td>
+        <td>${(v.servicios || []).map((s) => tag(s)).join("<br>")}</td>
+        <td class="small">${cd ? `<b>FONATUR (CDMX)</b> · ${cd} ${cd === 1 ? "día" : "días"}<div class="muted">${esc(tareas(v.tareasCdmx))}</div>` : ""}${co ? `<div style="margin-top:4px"><b>Territorio CTS</b> · ${co} ${co === 1 ? "día" : "días"}</div><div class="muted">${esc(tareas(v.tareasComp))}</div>` : ""}</td>
+        <td class="small">${v.det.map((d) => esc(persona(d.pid).nombre)).join("<br>")}</td></tr>`;
+    }).join("");
     const porPersona = M.equipo.map((p) => {
-      const vs = R.viajes.filter((v) => (v.personas || []).includes(p.id));
-      return vs.length ? `<tr><td>${esc(p.nombre)}</td><td>${esc(M.bases[p.base])}</td><td class="n">${vs.length}</td><td class="n">${sum(vs.map((v) => num(v.dias)))}</td></tr>` : "";
+      const ds = R.viajes.map((v) => v.det.find((d) => d.pid === p.id)).filter(Boolean);
+      return ds.length ? `<tr><td>${esc(p.nombre)}</td><td>${esc(M.bases[p.base])}</td><td class="n">${ds.length}</td><td class="n">${sum(ds.map((d) => d.cdmx))}</td><td class="n">${sum(ds.map((d) => d.comp))}</td><td class="n"><b>${sum(ds.map((d) => d.dias))}</b></td></tr>` : "";
     }).join("");
     $("#p-desplazamientos").innerHTML = `
       <h2>Presencialidad</h2>
-      <p class="lead">Desplazamientos del equipo de España a México y del equipo de México al territorio del CTS Compostela (Boca de Chila y Chacala-Las Cuevas) y a las oficinas de FONATUR.</p>
-      <div class="card"><div class="card-h">Calendario de desplazamientos</div><div class="card-b flush scroll"><table>
-        <tr><th>Mes</th><th>Servicio</th><th>Objeto</th><th>Destino</th><th class="n">Días</th><th>Participantes</th></tr>${filas}
+      <p class="lead">Misiones a México que combinan en una misma visita varios servicios y entregables: un tramo de trabajo con FONATUR en Ciudad de México y otro en el territorio del CTS Compostela (Boca de Chila y Chacala-Las Cuevas). El equipo con base en México se desplaza además al territorio para el trabajo de campo.</p>
+      <div class="card"><div class="card-h">Calendario de misiones</div><div class="card-b flush scroll"><table>
+        <tr><th>Misión</th><th>Objeto</th><th>Servicios</th><th style="min-width:230px">Tramos y tareas</th><th>Participantes</th></tr>${filas}
       </table></div></div>
       <div class="card"><div class="card-h">Presencialidad por integrante</div><div class="card-b flush scroll"><table>
-        <tr><th>Integrante</th><th>Base habitual</th><th class="n">Desplazamientos</th><th class="n">Días de campo</th></tr>${porPersona}
+        <tr><th>Integrante</th><th>Base habitual</th><th class="n">Misiones</th><th class="n">Días CDMX</th><th class="n">Días territorio</th><th class="n">Días de campo</th></tr>${porPersona}
       </table></div></div>`;
   }
 

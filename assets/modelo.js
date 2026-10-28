@@ -31,21 +31,40 @@
     return p.tarifa != null && p.tarifa !== "" ? num(p.tarifa) : num(m.roles[p.rol].tarifa);
   }
 
-  function costeViajePersona(m, v, p) {
+  /* Coste de un participante en una misión con tramo en CDMX (FONATUR) y tramo en el territorio */
+  function costeMisionPersona(m, p, cdmx, comp) {
     const vp = m.params.viaje;
-    const dias = Math.max(num(v.dias), 1);
-    const noches = Math.max(dias - 1, 1);
+    cdmx = num(cdmx); comp = num(comp);
+    const dias = cdmx + comp;
+    if (dias <= 0) return { transporte: 0, aloj: 0, dietas: 0, total: 0, vuelo: false, dias: 0 };
     let transporte = 0, aloj = 0, dietas = 0;
     if (p.base === "ES") {
-      transporte = num(vp.vuelo) + (v.destino === "COMP" ? num(vp.cdmxComp) : 0);
+      transporte = num(vp.vuelo) + (comp > 0 ? num(vp.cdmxComp) : 0);
     } else if (p.base === "MOR") {
-      transporte = v.destino === "COMP" ? num(vp.morComp) : num(vp.morCdmx);
+      transporte = cdmx > 0 && comp > 0 ? num(vp.morCdmx) + num(vp.cdmxComp) : comp > 0 ? num(vp.morComp) : num(vp.morCdmx);
     } else if (p.base === "LOC") {
-      transporte = v.destino === "COMP" ? 0 : num(vp.cdmxComp);
+      transporte = cdmx > 0 ? num(vp.cdmxComp) : 0;
     }
-    const local = p.base === "LOC" && v.destino === "COMP";
-    if (!local) { aloj = noches * num(vp.hotel); dietas = dias * num(vp.dieta); }
-    return { transporte, aloj, dietas, total: transporte + aloj + dietas, vuelo: p.base === "ES" };
+    if (p.base === "LOC") {
+      aloj = cdmx > 0 ? Math.max(cdmx, 1) * num(vp.hotel) : 0;
+      dietas = cdmx * num(vp.dieta);
+    } else {
+      aloj = Math.max(dias - 1, 1) * num(vp.hotel);
+      dietas = dias * num(vp.dieta);
+    }
+    return { transporte, aloj, dietas, total: transporte + aloj + dietas, vuelo: p.base === "ES", dias };
+  }
+
+  /* Reparto de los días de campo de un participante entre servicios */
+  function repartoParticipante(mi, part, S) {
+    const r = {};
+    let tot = 0;
+    Object.entries((part && part.reparto) || {}).forEach(([s, w]) => { if (S.includes(s) && num(w) > 0) { r[s] = num(w); tot += num(w); } });
+    if (tot > 0) return Object.fromEntries(Object.entries(r).map(([s, w]) => [s, w / tot]));
+    // Sin reparto propio: mismo peso para los servicios de la misión
+    const svcs = (mi.servicios || []).filter((s) => S.includes(s));
+    const lista = svcs.length ? svcs : [S[0]];
+    return Object.fromEntries(lista.map((s) => [s, 1 / lista.length]));
   }
 
   function mesesCobro(params) {
@@ -73,31 +92,35 @@
     const porId = {};
     m.equipo.forEach((p) => { porId[p.id] = p; });
 
-    // Campo desde desplazamientos
+    // Campo desde las misiones (cada participante reparte sus días entre servicios)
     const campo = {}, campoMes = {};
     m.equipo.forEach((p) => {
       campo[p.id] = {}; campoMes[p.id] = {};
       S.forEach((s) => { campo[p.id][s] = 0; campoMes[p.id][s] = zeros(N); });
     });
-    const viajes = m.viajes.map((v) => {
+    const viajes = (m.misiones || []).map((mi) => {
       const det = [];
-      let total = 0, vuelos = 0;
-      (v.personas || []).forEach((pid) => {
+      let total = 0, vuelos = 0, dias = 0, personas = 0;
+      const mIdx = Math.min(Math.max(num(mi.mes), 1), N) - 1;
+      const campoSvc = {};
+      Object.entries(mi.participantes || {}).forEach(([pid, part]) => {
         const p = porId[pid];
         if (!p) return;
-        const c = costeViajePersona(m, v, p);
-        det.push({ pid, ...c });
-        total += c.total;
+        const c = costeMisionPersona(m, p, part.cdmx, part.comp);
+        if (c.dias <= 0) return;
+        const rep = repartoParticipante(mi, part, S);
+        det.push({ pid, cdmx: num(part.cdmx), comp: num(part.comp), rep, ...c });
+        total += c.total; dias += c.dias; personas++;
         if (c.vuelo) vuelos++;
-        if (campo[pid] && campo[pid][v.svc] != null) {
-          campo[pid][v.svc] += num(v.dias);
-          const mi = Math.min(Math.max(num(v.mes), 1), N) - 1;
-          campoMes[pid][v.svc][mi] += num(v.dias);
-        }
+        Object.entries(rep).forEach(([s, w]) => {
+          campo[pid][s] += c.dias * w;
+          campoMes[pid][s][mIdx] += c.dias * w;
+          campoSvc[s] = (campoSvc[s] || 0) + c.dias * w;
+        });
       });
-      if (!(v.personas || []).length) avisos.push({ tipo: "info", txt: `El desplazamiento ${v.id} no tiene participantes.` });
-      if (num(v.mes) < 1 || num(v.mes) > N) avisos.push({ tipo: "error", txt: `El desplazamiento ${v.id} está fuera de M1–M${N}.` });
-      return { ...v, det, total, vuelos };
+      if (!personas) avisos.push({ tipo: "info", txt: `La misión ${mi.id} no tiene participantes con días asignados.` });
+      if (num(mi.mes) < 1 || num(mi.mes) > N) avisos.push({ tipo: "error", txt: `La misión ${mi.id} está fuera de M1–M${N}.` });
+      return { ...mi, det, total, vuelos, dias, personas, campoSvc };
     });
 
     // Gabinete y distribución mensual
@@ -162,7 +185,10 @@
     viajes.forEach((v) => {
       const i = Math.min(Math.max(num(v.mes), 1), N) - 1;
       viaMes[i] += v.total;
-      if (viaSvc[v.svc] != null) { viaSvc[v.svc] += v.total; directosSvcMes[v.svc][i] += v.total; }
+      // El coste de cada participante se imputa a los servicios según su reparto
+      v.det.forEach((d) => {
+        Object.entries(d.rep).forEach(([s, w]) => { viaSvc[s] += d.total * w; directosSvcMes[s][i] += d.total * w; });
+      });
     });
     const subs = m.subcontratas.map((sc) => {
       let pctTotal = 0;
@@ -250,7 +276,7 @@
     const diasTotales = sum(porPersona.map((p) => p.dias));
     const diasCampo = sum(porPersona.map((p) => p.diasCampo));
     const vuelos = sum(viajes.map((v) => v.vuelos));
-    const personasViaje = sum(viajes.map((v) => (v.personas || []).length));
+    const personasViaje = sum(viajes.map((v) => v.personas));
 
     if (holgura < 0) avisos.unshift({ tipo: "error", txt: `El precio con IVA supera el techo en ${fmtEur(-holgura)} (${fmtPct(-holgura / techo)}).` });
     if (denom <= 0) avisos.unshift({ tipo: "error", txt: "El margen y la fianza suman 100 % o más: el precio no puede calcularse." });
@@ -314,7 +340,7 @@
   global.CTS = {
     STORAGE_KEY, clone, num, sum, zeros,
     cargarLocal, guardarLocal, borrarLocal, modeloPublicado,
-    tarifa, costeViajePersona, mesesCobro, etiquetaMes, calcular,
+    tarifa, costeMisionPersona, repartoParticipante, mesesCobro, etiquetaMes, calcular,
     fmtEur, fmtMxn, fmtNum, fmtDias, fmtPct, enLetra
   };
 })(window);
