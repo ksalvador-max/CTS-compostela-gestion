@@ -27,6 +27,15 @@
   function modeloPublicado() { return clone(global.MODELO_PUBLICADO); }
 
   /* ── Utilidades del modelo ────────────────────────────────────── */
+  /* Coste interno por día: CBE anual (individual o del rol) / días productivos al año */
+  function cbe(m, p) {
+    if (p.cbe != null && p.cbe !== "") return num(p.cbe);
+    return num((m.roles[p.rol] || {}).cbe);
+  }
+  function costeDia(m, p) {
+    const d = num(m.params.diasProductivos);
+    return d > 0 ? cbe(m, p) / d : 0;
+  }
   function tarifa(m, p) {
     return p.tarifa != null && p.tarifa !== "" ? num(p.tarifa) : num(m.roles[p.rol].tarifa);
   }
@@ -171,14 +180,15 @@
     const honMes = zeros(N), viaMes = zeros(N), subMes = zeros(N);
     const honSvc = {}, viaSvc = {}, subSvc = {}, directosSvcMes = {};
     S.forEach((s) => { honSvc[s] = 0; viaSvc[s] = 0; subSvc[s] = 0; directosSvcMes[s] = zeros(N); });
-    const honPersona = {};
+    const honPersona = {}, intPersona = {}, honIntMes = zeros(N);
     m.equipo.forEach((p) => {
-      const t = tarifa(m, p);
-      honPersona[p.id] = 0;
+      const t = tarifa(m, p), cd = costeDia(m, p);
+      honPersona[p.id] = 0; intPersona[p.id] = 0;
       S.forEach((s) => {
         dist[p.id][s].forEach((d, i) => {
           const c = d * t;
           honMes[i] += c; honSvc[s] += c; honPersona[p.id] += c; directosSvcMes[s][i] += c;
+          honIntMes[i] += d * cd; intPersona[p.id] += d * cd;
         });
       });
     });
@@ -224,13 +234,25 @@
     // Coste total mensual (estructura y contingencia proporcionales; fianza en M1)
     const costeMes = directosMes.map((d, i) => d * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
 
+    // Coste real: honorarios a coste interno (CBE / días productivos × días de dedicación)
+    const honInterno = sum(honIntMes);
+    const realDirMes = honIntMes.map((h, i) => h + viaMes[i] + subMes[i]);
+    const realDirectos = sum(realDirMes);
+    const realEstructura = realDirectos * pEst, realContingencia = realDirectos * pCont;
+    const costeReal = realDirectos + realEstructura + realContingencia + fianza;
+    const margenReal = pvpNeto - costeReal;
+    const incluirPersonal = !(P.tesoreriaPersonal === false || P.tesoreriaPersonal === "false");
+    const costeRealMes = realDirMes.map((d, i) => d * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
+    const pagoMes = realDirMes.map((d, i) => (incluirPersonal ? d : d - honIntMes[i]) * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
+    if (!(num(P.diasProductivos) > 0)) avisos.push({ tipo: "error", txt: "Indica los días productivos al año para calcular el coste interno de los honorarios." });
+
     // Devengado y facturación
     const cobro = mesesCobro(P);
     const factor = directos > 0 ? pvpNeto / directos : 0;
     const devengado = directosMes.map((d) => d * factor);
     const horizonte = N + cobro.desfase;
     const cobrosMes = zeros(horizonte), salidasMes = zeros(horizonte);
-    costeMes.forEach((c, i) => { salidasMes[i] = c; });
+    pagoMes.forEach((c, i) => { salidasMes[i] = c; });
     devengado.forEach((d, i) => { cobrosMes[i + cobro.desfase] += d; });
     const saldoMes = cobrosMes.map((c, i) => c - salidasMes[i]);
     const acumulado = [];
@@ -270,7 +292,7 @@
       const dg = sum(S.map((s) => gab[p.id][s]));
       const mensual = zeros(N);
       S.forEach((s) => dist[p.id][s].forEach((d, i) => { mensual[i] += d; }));
-      return { id: p.id, tarifa: tarifa(m, p), diasCampo: dc, diasGab: dg, dias: dc + dg, honorarios: honPersona[p.id], mensual };
+      return { id: p.id, tarifa: tarifa(m, p), diasCampo: dc, diasGab: dg, dias: dc + dg, honorarios: honPersona[p.id], costeDia: costeDia(m, p), cbe: cbe(m, p), costeInterno: intPersona[p.id], mensual };
     });
 
     const diasTotales = sum(porPersona.map((p) => p.dias));
@@ -286,6 +308,7 @@
     return {
       N, S, campo, gab, dias, dist, viajes, subs, ajustesUsados,
       honMes, viaMes, subMes, directosMes, costeMes, directosSvcMes,
+      honIntMes, honInterno, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
       honorarios, viajesTot, subTot, directos, estructura, contingencia, fianza, kFianza, anosFianza,
       costeTotal, margen, pvpNeto, iva, pvpIva, techo, holgura,
       devengado, cobro, horizonte, cobrosMes, salidasMes, saldoMes, acumulado, minAcum, mesMin,
@@ -340,7 +363,7 @@
   global.CTS = {
     STORAGE_KEY, clone, num, sum, zeros,
     cargarLocal, guardarLocal, borrarLocal, modeloPublicado,
-    tarifa, costeMisionPersona, repartoParticipante, mesesCobro, etiquetaMes, calcular,
+    tarifa, cbe, costeDia, costeMisionPersona, repartoParticipante, mesesCobro, etiquetaMes, calcular,
     fmtEur, fmtMxn, fmtNum, fmtDias, fmtPct, enLetra
   };
 })(window);

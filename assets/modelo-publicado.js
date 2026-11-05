@@ -1,7 +1,7 @@
 /* CTS Compostela · Modelo publicado
    Escenario oficial publicado por el responsable del proyecto. Para actualizarlo: Presupuesto → Escenarios → «Descargar como modelo publicado». */
 window.MODELO_PUBLICADO = {
-  "version": 4,
+  "version": 5,
   "meta": {
     "nombre": "Esc. Base con perfiles",
     "actualizado": "2026-11-05",
@@ -29,24 +29,35 @@ window.MODELO_PUBLICADO = {
       "cdmxComp": 200,
       "morCdmx": 80,
       "morComp": 220
-    }
+    },
+    "diasProductivos": 220,
+    "tesoreriaPersonal": true
   },
   "roles": {
     "DIR": {
       "nombre": "Director de proyecto",
-      "tarifa": 350
+      "tarifa": 350,
+      "cbe": 66000
     },
     "ASE": {
       "nombre": "Asesor estratégico",
-      "tarifa": 400
+      "tarifa": 400,
+      "cbe": 66000
     },
     "SEN": {
       "nombre": "Consultor senior",
-      "tarifa": 350
+      "tarifa": 350,
+      "cbe": 66000
     },
     "ESP": {
       "nombre": "Consultor especialista",
-      "tarifa": 120
+      "tarifa": 120,
+      "cbe": 50000
+    },
+    "JUN": {
+      "nombre": "Consultor junior",
+      "tarifa": 120,
+      "cbe": 50000
     }
   },
   "bases": {
@@ -97,6 +108,13 @@ window.MODELO_PUBLICADO = {
       "rol": "ESP",
       "base": "MOR",
       "bolsa": true
+    },
+    {
+      "id": "JUN",
+      "corto": "CJ",
+      "nombre": "Consultor junior",
+      "rol": "JUN",
+      "base": "MOR"
     }
   ],
   "servicios": [
@@ -410,6 +428,14 @@ window.MODELO_PUBLICADO = {
       "S3": 54,
       "S4": 26,
       "S5": 39
+    },
+    "JUN": {
+      "PT": 0,
+      "S1": 0,
+      "S2": 0,
+      "S3": 0,
+      "S4": 0,
+      "S5": 0
     }
   },
   "ajustes": {},
