@@ -1,13 +1,10 @@
 /* CTS Compostela · Modelo publicado
-   Fuente única de datos para el planning (cliente) y la herramienta presupuestaria (interna).
-   Generado desde el libro CTS_Compostela_Despliegue_Operacion.xlsx (28-10-2026).
-   Para publicar una versión nueva: Presupuesto → Escenarios → «Descargar como modelo publicado»
-   y sustituir este archivo en el repositorio. */
+   Escenario oficial publicado por el responsable del proyecto. Para actualizarlo: Presupuesto → Escenarios → «Descargar como modelo publicado». */
 window.MODELO_PUBLICADO = {
-  "version": 3,
+  "version": 4,
   "meta": {
-    "nombre": "Escenario base · misiones combinadas y despliegue de tareas",
-    "actualizado": "2026-10-28",
+    "nombre": "Esc. Base con perfiles",
+    "actualizado": "2026-11-05",
     "fuenteAnexo": "Anexo técnico del 26-10-2026"
   },
   "params": {
@@ -61,42 +58,42 @@ window.MODELO_PUBLICADO = {
     {
       "id": "DIR",
       "corto": "DP",
-      "nombre": "Director de proyecto",
+      "nombre": "Kevin",
       "rol": "DIR",
       "base": "ES"
     },
     {
       "id": "ASE",
       "corto": "AE",
-      "nombre": "Asesor estratégico",
+      "nombre": "Tono",
       "rol": "ASE",
       "base": "ES"
     },
     {
       "id": "SEN1",
       "corto": "CS1",
-      "nombre": "Consultor senior 1",
+      "nombre": "Claudia",
       "rol": "SEN",
       "base": "MOR"
     },
     {
       "id": "SEN2",
       "corto": "CS2",
-      "nombre": "Consultor senior 2",
+      "nombre": "Mavi",
       "rol": "SEN",
       "base": "ES"
     },
     {
       "id": "SEN3",
       "corto": "CS3",
-      "nombre": "Consultor senior 3",
+      "nombre": "Dani / Ángela",
       "rol": "SEN",
       "base": "ES"
     },
     {
       "id": "ESP",
       "corto": "CE",
-      "nombre": "Consultor especialista",
+      "nombre": "Junior",
       "rol": "ESP",
       "base": "MOR",
       "bolsa": true
@@ -359,8 +356,9 @@ window.MODELO_PUBLICADO = {
       "concepto": "Marca del programa CTS y manual de identidad",
       "importe": 15000,
       "pagos": {
-        "3": 50,
-        "4": 50
+        "3": null,
+        "4": null,
+        "6": 100
       }
     }
   ],
