@@ -140,7 +140,7 @@ button.x:hover { color: var(--err); }
 
 /* Tablas compactas de meses */
 .mtab th, .mtab td { padding: 6px 6px; }
-.mtab td input { width: 52px; text-align: right; padding: 3px 5px; }
+.mtab td input { width: 62px; text-align: right; padding: 3px 4px; font-size: 12px; }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--ink-2); }
 .legend .sw { width: 22px; height: 12px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 4px; }
 

@@ -435,8 +435,17 @@
     const ms = meses();
     const pesosFilas = M.servicios.map((s, si) => {
       const tot = sum((s.pesos || []).slice(0, R.N).map(num));
-      return `<tr><td>${svcTag(s.id, true)}</td>${ms.map((i) => `<td>${inp(`servicios.${si}.pesos.${i - 1}`, { step: 0.5 })}</td>`).join("")}<td class="n">${fmtNum(tot, 1)}</td></tr>`;
+      const ok = Math.abs(tot - 100) < 0.05 || tot === 0;
+      return `<tr><td>${svcTag(s.id, true)}</td>${ms.map((i) => `<td>${inp(`servicios.${si}.pesos.${i - 1}`, { step: 1 })}</td>`).join("")}<td class="n${ok ? "" : " neg"}" title="${ok ? "" : "No suma 100 %: se reparte en proporción"}">${fmtNum(tot, 1)} %</td></tr>`;
     }).join("");
+    // Días por servicio y mes (campo + gabinete), desde Equipo y dedicación y Misiones
+    const svcMes = M.servicios.map((s) => {
+      const tot = ms.map((i) => sum(M.equipo.map((p) => R.dist[p.id][s.id][i - 1])));
+      const camp = ms.map((i) => sum(R.viajes.filter((v) => num(v.mes) === i).map((v) => sum(v.det.map((d) => d.dias * (d.rep[s.id] || 0))))));
+      return { s, tot, camp };
+    });
+    const diasSvc = svcMes.map(({ s, tot, camp }) => `<tr><td>${svcTag(s.id, true)}</td>${tot.map((d, k) => `<td class="h h${nivel(d)}">${d > 0.05 ? fmtDias(d) : "·"}${camp[k] > 0.05 ? `<div class="small" style="opacity:.8">${fmtDias(camp[k])} c</div>` : ""}</td>`).join("")}<td class="n"><b>${fmtDias(sum(tot))}</b><div class="small muted">${fmtDias(sum(camp))} c</div></td></tr>`).join("");
+    const totSvcMes = ms.map((i) => sum(svcMes.map((x) => x.tot[i - 1])));
     const entPorSvcMes = (sid, i) => M.entregables.filter((e) => e.svc === sid && e.mes === i && !e.mesFin).map((e) => e.cod);
     const hitos = M.servicios.map((s) => `<tr><td>${svcTag(s.id)}</td>${ms.map((i) => { const e = entPorSvcMes(s.id, i); return `<td class="c">${e.map((c) => `<span class="chip e">${c.replace(s.id + "-", "")}</span>`).join("")}</td>`; }).join("")}<td></td></tr>`).join("");
 
@@ -462,12 +471,18 @@
 
     $("#p-distribucion").innerHTML = `
       <h2>Distribución mensual</h2>
-      <p class="lead">Cada servicio tiene una ventana de actividad y un peso por mes. Los días de gabinete de cada persona se reparten según esos pesos; los días de campo se sitúan en el mes del desplazamiento. Los entregables se presentan en los primeros 10 días hábiles del mes indicado, así que el trabajo se concentra en el mes anterior.</p>
-      <div class="card"><div class="card-h">Pesos por servicio y mes <span class="hint">0 = fuera de la ventana de actividad</span></div><div class="card-b flush scroll"><table class="mtab">
+      <p class="lead">Esta pestaña no define cuántos días hay, sino cuándo se trabajan. Los días proceden de Equipo y dedicación (gabinete) y de Misiones (campo). Los porcentajes de cada servicio reparten su gabinete entre los meses; el campo se sitúa siempre en el mes de cada misión. Los entregables se presentan en los primeros 10 días hábiles del mes indicado, así que el trabajo se concentra en el mes anterior.</p>
+      <div class="card"><div class="card-h">Reparto del gabinete por servicio y mes (%) <span class="hint">Cada fila suma 100 % · 0 = fuera de la ventana de actividad</span></div><div class="card-b flush scroll"><table class="mtab">
         <tr><th>Servicio</th>${ms.map((i) => `<th class="n">${ml(i)}</th>`).join("")}<th class="n">Σ</th></tr>
         ${pesosFilas}
         <tr><th colspan="${R.N + 2}">Entregables</th></tr>
         ${hitos}
+      </table></div></div>
+
+      <div class="card"><div class="card-h">Días por servicio y mes <span class="hint">Campo + gabinete · «c» = días de campo incluidos</span></div><div class="card-b flush scroll"><table class="heat">
+        <tr><th>Servicio</th>${ms.map((i) => `<th class="c">${ml(i)}</th>`).join("")}<th class="n">Total</th></tr>
+        ${diasSvc}
+        <tr class="tot"><td>Total</td>${totSvcMes.map((d) => `<td class="c mono">${fmtDias(d)}</td>`).join("")}<td class="n">${fmtDias(R.diasTotales)}</td></tr>
       </table></div></div>
 
       <div class="card"><div class="card-h">Días por persona y mes <span class="hint">Campo + gabinete</span></div><div class="card-b flush scroll"><table class="heat">
@@ -605,6 +620,16 @@
 
   /* ── Arranque ────────────────────────────────────────────────── */
   M.ajustes = M.ajustes || {};
+  // Los pesos se expresan en % por servicio (cada fila suma 100)
+  M.servicios.forEach((s) => {
+    const p = (s.pesos || []).map(num), t = sum(p);
+    if (t > 0 && Math.abs(t - 100) > 0.05) {
+      const r = p.map((x) => Math.round(x / t * 1000) / 10);
+      const dif = Math.round((100 - sum(r)) * 10) / 10;
+      if (dif) { const k = r.indexOf(Math.max(...r)); r[k] = Math.round((r[k] + dif) * 10) / 10; }
+      s.pesos = r;
+    }
+  });
   renderTodo();
   try {
     const t = sessionStorage.getItem("cts-tab");
