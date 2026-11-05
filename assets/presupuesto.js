@@ -181,7 +181,8 @@
       <div class="k"><span>PVP IVA incl.</span><b>${fmtEur(R.pvpIva)}</b></div>
       <div class="k"><span>En MXN</span><b>${fmtMxn(R.pvpIva * tc())}</b></div>
       <div class="k"><span>Techo ${fmtEur(R.techo)}</span><b class="${h < 0 ? "neg" : "pos"}">${h < 0 ? "Excede " + fmtEur(-h) : "Holgura " + fmtEur(h)}</b></div>
-      <div class="k"><span>Margen</span><b>${fmtEur(R.margen)} · ${fmtPct(R.pvpNeto ? R.margen / R.pvpNeto : 0)}</b></div>
+      <div class="k"><span>Margen s/ PVP</span><b>${fmtEur(R.margen)} · ${fmtPct(R.pvpNeto ? R.margen / R.pvpNeto : 0)}</b></div>
+      <div class="k"><span>Margen s/ techo</span><b class="${R.margenTecho < 0 ? "neg" : ""}">${fmtEur(R.margenTecho)} · ${fmtPct(R.netoTecho ? R.margenTecho / R.netoTecho : 0)}</b></div>
       <div class="k"><span>Días-persona</span><b>${fmtDias(R.diasTotales)}</b></div>
       <div class="k"><span>Financiación máx.</span><b class="${R.minAcum < 0 ? "neg" : ""}">${fmtEur(-R.minAcum)}</b></div>
       <div class="estado">${window.CTS.cargarLocal() ? "Cambios guardados en este navegador" : "Modelo publicado"}</div>`;
@@ -205,9 +206,20 @@
         <div class="kpi ${R.holgura < 0 ? "alert" : "good"}"><div class="l">Precio IVA incluido</div><div class="v">${fmtEur(R.pvpIva)}</div><div class="s">${fmtMxn(totMxn)}</div></div>
         <div class="kpi"><div class="l">Techo vigente (IVA incl.)</div><div class="v">${fmtEur(R.techo)}</div><div class="s">${R.holgura < 0 ? "Excede en " + fmtEur(-R.holgura) : "Holgura " + fmtEur(R.holgura)}</div></div>
         <div class="kpi"><div class="l">Precio neto sin IVA</div><div class="v">${fmtEur(R.pvpNeto)}</div><div class="s">${fmtMxn(netoMxn)}</div></div>
-        <div class="kpi"><div class="l">Margen</div><div class="v">${fmtEur(R.margen)}</div><div class="s">${fmtPct(R.margen / pv)} · máx. en techo ${fmtPct(R.margenMaxTecho)}</div></div>
         <div class="kpi"><div class="l">Días-persona</div><div class="v">${fmtDias(R.diasTotales)}</div><div class="s">${fmtDias(R.diasCampo)} campo · ${fmtDias(R.diasTotales - R.diasCampo)} gabinete</div></div>
         <div class="kpi ${R.minAcum < 0 ? "alert" : ""}"><div class="l">Financiación máxima</div><div class="v">${fmtEur(-R.minAcum)}</div><div class="s">Pico en ${R.mesMin ? ml(R.mesMin) : "—"} · cobro a M+${R.cobro.desfase}</div></div>
+      </div>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="kpi" style="border:2px solid var(--granate);padding:18px 20px">
+          <div class="l" style="color:var(--granate);font-weight:600">Margen sobre PVP ofertado</div>
+          <div class="v" style="font-size:28px">${fmtEur(R.margen)} <span style="font-size:18px">· ${fmtPct(R.pvpNeto ? R.margen / R.pvpNeto : 0)}</span></div>
+          <div class="s">Sobre un precio neto de ${fmtEur(R.pvpNeto)} (${fmtEur(R.pvpIva)} con IVA), con el margen objetivo de Parámetros</div>
+        </div>
+        <div class="kpi" style="border:2px solid var(--gold);padding:18px 20px;background:var(--gold-bg)">
+          <div class="l" style="color:#8A5A2E;font-weight:600">Margen sobre licitación (ofertando al techo)</div>
+          <div class="v" style="font-size:28px;${R.margenTecho < 0 ? "color:var(--err)" : ""}">${fmtEur(R.margenTecho)} <span style="font-size:18px">· ${fmtPct(R.netoTecho ? R.margenTecho / R.netoTecho : 0)}</span></div>
+          <div class="s">Sobre el precio neto del techo, ${fmtEur(R.netoTecho)} (${fmtEur(R.techo)} con IVA) · ${R.margenTecho >= R.margen ? "+" + fmtEur(R.margenTecho - R.margen) + " respecto al PVP ofertado" : fmtEur(R.margenTecho - R.margen) + ": el PVP supera el techo"}</div>
+        </div>
       </div>
       <div class="grid g2">
         <div class="card"><div class="card-h">Composición del precio</div><div class="card-b flush"><table>
@@ -327,7 +339,7 @@
     const filasEquipo = M.equipo.map((p, i) => {
       const pp = R.porPersona[i];
       return `<tr>
-        <td>${inp(`equipo.${i}.nombre`, { type: "text" })}${p.bolsa ? `<div class="small muted">Bolsa de días · distribución entre personas por definir</div>` : ""}</td>
+        <td>${inp(`equipo.${i}.nombre`, { type: "text" })}<div style="margin-top:3px">${inp(`equipo.${i}.funcion`, { type: "text", cls: "ghost", ph: "Función en el proyecto" })}</div></td>
         <td>${sel(`equipo.${i}.rol`, rolOpts)}</td>
         <td>${sel(`equipo.${i}.base`, baseOpts)}</td>
         <td class="n">${inp(`equipo.${i}.tarifa`, { nullable: true, cls: "w90", ph: M.roles[p.rol].tarifa })}</td>
@@ -348,7 +360,7 @@
         tc_ += c; tg += g;
         return `<td class="calc bl">${c ? fmtDias(c) : "·"}</td><td>${inp(`gabinete.${p.id}.${s.id}`, { step: 0.5 })}</td><td class="n">${fmtDias(c + g)}</td>`;
       }).join("");
-      return `<tr><td><b>${esc(p.nombre)}</b>${p.nombre.startsWith(M.roles[p.rol].nombre) ? (p.bolsa ? `<div class="small muted">Bolsa de días</div>` : "") : `<div class="small muted">${esc(M.roles[p.rol].nombre)}</div>`}</td>${celdas}<td class="n bl">${fmtDias(tc_)}</td><td class="n">${fmtDias(tg)}</td><td class="n"><b>${fmtDias(tc_ + tg)}</b></td></tr>`;
+      return `<tr><td><b>${esc(p.nombre)}</b><div class="small muted">${esc(p.funcion || M.roles[p.rol].nombre)}</div></td>${celdas}<td class="n bl">${fmtDias(tc_)}</td><td class="n">${fmtDias(tg)}</td><td class="n"><b>${fmtDias(tc_ + tg)}</b></td></tr>`;
     }).join("");
     const tot7 = S.map((s) => {
       const c = sum(M.equipo.map((p) => R.campo[p.id][s.id])), g = sum(M.equipo.map((p) => R.gab[p.id][s.id]));
@@ -357,7 +369,7 @@
 
     $("#p-equipo").innerHTML = `
       <h2>Equipo y dedicación</h2>
-      <p class="lead">Perfiles según el numeral 4.1 del anexo: director de proyecto, asesor estratégico, tres consultores senior y especialistas. Los especialistas se tratan como una bolsa única de días («consultor especialista»), cuya distribución entre personas se definirá más adelante. La tarifa de venta y el CBE individuales son opcionales; si se dejan vacíos se aplican los del rol (pestaña Parámetros).</p>
+      <p class="lead">Dirección dual España–México con coordinación operativa adjunta en cada país, equipo local en México y supervisión especializada por servicio. La tarifa de venta y el CBE individuales son opcionales: si se dejan vacíos se aplican los del rol (pestaña Parámetros). La base habitual determina el coste de cada misión.</p>
       <div class="card"><div class="card-h">Equipo <span class="hint">Base habitual: determina el coste de cada misión</span></div><div class="card-b flush scroll"><table>
         <tr><th>Nombre</th><th>Rol</th><th>Base</th><th class="n">Tarifa €/d</th><th class="n">Campo</th><th class="n">Gabinete</th><th class="n">Total días</th><th class="n">A tarifa de venta (ref.)</th><th class="n">CBE €/año</th><th class="n">Coste €/día</th><th class="n">Coste interno</th></tr>
         ${filasEquipo}

@@ -121,7 +121,7 @@
         const a = R.campo[p.id][s.id], b = R.gab[p.id][s.id]; c += a; g += b;
         return `<td class="n bl">${a ? fmtDias(a) : "·"}</td><td class="n">${b ? fmtDias(b) : "·"}</td><td class="n">${a + b ? fmtDias(a + b) : "·"}</td>`;
       }).join("");
-      return `<tr><td><b>${esc(p.nombre)}</b>${p.nombre.startsWith(M.roles[p.rol].nombre) ? (p.bolsa ? `<div class="small muted">Bolsa de días</div>` : "") : `<div class="small muted">${esc(M.roles[p.rol].nombre)}</div>`}</td>${cel}<td class="n bl">${fmtDias(c)}</td><td class="n">${fmtDias(g)}</td><td class="n"><b>${fmtDias(c + g)}</b></td></tr>`;
+      return `<tr><td><b>${esc(p.nombre)}</b><div class="small muted">${esc(p.funcion || M.roles[p.rol].nombre)}</div></td>${cel}<td class="n bl">${fmtDias(c)}</td><td class="n">${fmtDias(g)}</td><td class="n"><b>${fmtDias(c + g)}</b></td></tr>`;
     }).join("");
     const tot = S.map((s) => { const a = sum(M.equipo.map((p) => R.campo[p.id][s.id])), b = sum(M.equipo.map((p) => R.gab[p.id][s.id])); return `<td class="n bl">${fmtDias(a)}</td><td class="n">${fmtDias(b)}</td><td class="n">${fmtDias(a + b)}</td>`; }).join("");
     const nivel = (d) => (d <= 0.05 ? 0 : d <= 3 ? 1 : d <= 6 ? 2 : d <= 9 ? 3 : d <= 12 ? 4 : 5);

@@ -1,9 +1,9 @@
 /* CTS Compostela · Modelo publicado
    Escenario oficial publicado por el responsable del proyecto. Para actualizarlo: Presupuesto → Escenarios → «Descargar como modelo publicado». */
 window.MODELO_PUBLICADO = {
-  "version": 7,
+  "version": 8,
   "meta": {
-    "nombre": "Esc. Base con perfiles",
+    "nombre": "Equipo dual España–México · propuesta",
     "actualizado": "2026-11-05",
     "fuenteAnexo": "Anexo técnico del 04-11-2026"
   },
@@ -38,84 +38,127 @@ window.MODELO_PUBLICADO = {
     "DIR": {
       "nombre": "Director de proyecto",
       "tarifa": 350,
-      "cbe": 66000
+      "cbe": 63200
     },
     "ASE": {
       "nombre": "Asesor estratégico",
       "tarifa": 400,
-      "cbe": 66000
+      "cbe": 63200
     },
     "SEN": {
       "nombre": "Consultor senior",
       "tarifa": 350,
-      "cbe": 66000
+      "cbe": 63200
     },
     "ESP": {
       "nombre": "Consultor especialista",
+      "tarifa": 250,
+      "cbe": 36600
+    },
+    "COO": {
+      "nombre": "Coordinación operativa adjunta",
       "tarifa": 120,
-      "cbe": 50000
+      "cbe": 36600
+    },
+    "LOC": {
+      "nombre": "Consultor del equipo local",
+      "tarifa": 120,
+      "cbe": 33500
     },
     "JUN": {
       "nombre": "Consultor junior",
       "tarifa": 120,
-      "cbe": 50000
+      "cbe": 24200
     }
   },
   "bases": {
     "ES": "España",
     "MOR": "México · Morelia",
+    "CDX": "México · CDMX",
     "LOC": "Nayarit · local"
   },
   "equipo": [
     {
-      "id": "DIR",
-      "corto": "DP",
+      "id": "DPE",
+      "corto": "DP-E",
       "nombre": "Kevin",
       "rol": "DIR",
-      "base": "ES"
+      "base": "ES",
+      "funcion": "Dirección de proyecto · España"
     },
     {
-      "id": "ASE",
-      "corto": "AE",
-      "nombre": "Tono",
-      "rol": "ASE",
-      "base": "ES"
-    },
-    {
-      "id": "SEN1",
-      "corto": "CS1",
+      "id": "DPM",
+      "corto": "DP-M",
       "nombre": "Claudia",
-      "rol": "SEN",
-      "base": "MOR"
+      "rol": "DIR",
+      "base": "MOR",
+      "funcion": "Dirección de proyecto · México"
     },
     {
-      "id": "SEN2",
-      "corto": "CS2",
+      "id": "COE",
+      "corto": "CO-E",
+      "nombre": "Ángela",
+      "rol": "COO",
+      "base": "ES",
+      "funcion": "Coordinación operativa adjunta · España"
+    },
+    {
+      "id": "COM",
+      "corto": "CO-M",
+      "nombre": "Ana Contadora",
+      "rol": "COO",
+      "base": "CDX",
+      "cbe": 23500,
+      "funcion": "Coordinación operativa adjunta · México"
+    },
+    {
+      "id": "AAR",
+      "corto": "AJ",
+      "nombre": "Aarón Jiménez",
+      "rol": "LOC",
+      "base": "LOC",
+      "funcion": "Equipo local · S1, S3, S4, S5"
+    },
+    {
+      "id": "LUP",
+      "corto": "LU",
+      "nombre": "Lupita",
+      "rol": "LOC",
+      "base": "CDX",
+      "funcion": "Equipo local · S2, S3, S4"
+    },
+    {
+      "id": "MAV",
+      "corto": "MV",
       "nombre": "Mavi",
       "rol": "SEN",
-      "base": "ES"
+      "base": "ES",
+      "funcion": "Supervisión operativa S2 · producto y posicionamiento"
     },
     {
-      "id": "SEN3",
-      "corto": "CS3",
-      "nombre": "Dani / Ángela",
-      "rol": "SEN",
-      "base": "ES"
-    },
-    {
-      "id": "ESP",
-      "corto": "CE",
-      "nombre": "Junior",
+      "id": "DAN",
+      "corto": "DS",
+      "nombre": "Daniel Da Silva",
       "rol": "ESP",
-      "base": "MOR",
-      "bolsa": true
+      "base": "ES",
+      "funcion": "Supervisión operativa S4 · inteligencia turística"
+    },
+    {
+      "id": "TON",
+      "corto": "TF",
+      "nombre": "Tono Franco",
+      "rol": "ASE",
+      "base": "ES",
+      "funcion": "Supervisión estratégica PT, S1, S3, S5"
     },
     {
       "id": "JUN",
       "corto": "CJ",
       "nombre": "Consultor junior",
       "rol": "JUN",
-      "base": "MOR"
+      "base": "MOR",
+      "bolsa": true,
+      "funcion": "Apoyo puntual de gabinete"
     }
   ],
   "servicios": [
@@ -424,136 +467,238 @@ window.MODELO_PUBLICADO = {
     }
   ],
   "gabinete": {
-    "DIR": {
-      "PT": 23,
-      "S1": 6,
-      "S2": 3,
-      "S3": 2,
-      "S4": 12,
-      "S5": 9
-    },
-    "ASE": {
-      "PT": 4,
-      "S1": 16,
-      "S2": 2,
-      "S3": 2,
-      "S4": 3,
+    "DPE": {
+      "PT": 8,
+      "S1": 8,
+      "S2": 5,
+      "S3": 6,
+      "S4": 5,
       "S5": 8
     },
-    "SEN1": {
-      "PT": 6,
-      "S1": 0,
-      "S2": 0,
-      "S3": 23,
-      "S4": 1,
+    "DPM": {
+      "PT": 8,
+      "S1": 8,
+      "S2": 8,
+      "S3": 10,
+      "S4": 6,
+      "S5": 6
+    },
+    "COE": {
+      "PT": 20,
+      "S1": 2,
+      "S2": 2,
+      "S3": 2,
+      "S4": 2,
       "S5": 2
     },
-    "SEN2": {
-      "PT": 5,
+    "COM": {
+      "PT": 20,
+      "S1": 2,
+      "S2": 2,
+      "S3": 2,
+      "S4": 2,
+      "S5": 2
+    },
+    "AAR": {
+      "PT": 0,
+      "S1": 15,
+      "S2": 0,
+      "S3": 15,
+      "S4": 8,
+      "S5": 8
+    },
+    "LUP": {
+      "PT": 0,
       "S1": 0,
-      "S2": 37,
+      "S2": 25,
+      "S3": 12,
+      "S4": 8,
+      "S5": 0
+    },
+    "MAV": {
+      "PT": 0,
+      "S1": 0,
+      "S2": 18,
       "S3": 0,
       "S4": 0,
-      "S5": 2
+      "S5": 0
     },
-    "SEN3": {
-      "PT": 4,
-      "S1": 2,
-      "S2": 0,
-      "S3": 0,
-      "S4": 13,
-      "S5": 2
-    },
-    "ESP": {
-      "PT": 33,
-      "S1": 28,
-      "S2": 65,
-      "S3": 54,
-      "S4": 26,
-      "S5": 39
-    },
-    "JUN": {
+    "DAN": {
       "PT": 0,
       "S1": 0,
       "S2": 0,
       "S3": 0,
-      "S4": 0,
+      "S4": 16,
       "S5": 0
+    },
+    "TON": {
+      "PT": 2,
+      "S1": 4,
+      "S2": 0,
+      "S3": 2,
+      "S4": 0,
+      "S5": 3
+    },
+    "JUN": {
+      "PT": 0,
+      "S1": 0,
+      "S2": 4,
+      "S3": 4,
+      "S4": 0,
+      "S5": 4
     }
   },
-  "ajustes": {},
+  "ajustes": {
+    "DPE|PT|1": 1.5,
+    "DPE|S1|1": 0.5,
+    "DPE|S2|1": 0,
+    "DPE|S5|1": 0,
+    "DPM|PT|1": 1.5,
+    "DPM|S1|1": 0.5,
+    "DPM|S2|1": 0.5,
+    "DPM|S5|1": 0,
+    "COE|PT|1": 3.5,
+    "COE|S1|1": 0,
+    "COE|S2|1": 0,
+    "COE|S5|1": 0,
+    "COM|PT|1": 3.5,
+    "COM|S1|1": 0,
+    "COM|S2|1": 0,
+    "COM|S5|1": 0,
+    "AAR|S1|1": 1,
+    "AAR|S5|1": 0,
+    "LUP|S2|1": 1,
+    "MAV|S2|1": 1,
+    "TON|PT|1": 0.5,
+    "TON|S1|1": 0.5,
+    "TON|S5|1": 0,
+    "JUN|S2|1": 0,
+    "JUN|S5|1": 1.5,
+    "DPE|PT|2": 0.5,
+    "DPE|S1|2": 1.5,
+    "DPE|S2|2": 0.5,
+    "DPE|S5|2": 0,
+    "DPM|PT|2": 0.5,
+    "DPM|S1|2": 1.5,
+    "DPM|S2|2": 1,
+    "DPM|S5|2": 0,
+    "COE|PT|2": 1,
+    "COE|S1|2": 0.5,
+    "COE|S2|2": 0.5,
+    "COE|S5|2": 0,
+    "COM|PT|2": 1,
+    "COM|S1|2": 0.5,
+    "COM|S2|2": 0.5,
+    "COM|S5|2": 0,
+    "AAR|S1|2": 3,
+    "AAR|S5|2": 0,
+    "LUP|S2|2": 3,
+    "MAV|S2|2": 2,
+    "TON|PT|2": 0,
+    "TON|S1|2": 1,
+    "TON|S5|2": 0,
+    "JUN|S2|2": 0.5,
+    "JUN|S5|2": 1
+  },
   "appsScriptUrl": "",
   "misiones": [
     {
       "id": "MI-1",
       "mes": 1,
       "nombre": "Arranque del proyecto",
-      "objeto": "Reunión de inicio y sesión de gobernanza con FONATUR; reconocimiento del territorio, trabajo de campo de S2 y primeras entrevistas con actores para el modelo de relación de S1.",
+      "objeto": "Reunión de inicio con FONATUR y sesión de gobernanza; reconocimiento del territorio con el equipo local y primeros contactos con actores.",
       "tareasCdmx": [
         "PT-1.1",
         "S1-1.3"
       ],
       "tareasComp": [
         "PT-1.4",
-        "S2-1.1",
-        "S2-3.1",
         "S1-1.5"
       ],
       "servicios": [
         "PT",
-        "S1",
-        "S2"
+        "S1"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
           "cdmx": 2,
-          "comp": 6,
-          "reparto": {
-            "PT": 4,
-            "S1": 4
-          }
-        },
-        "ASE": {
-          "cdmx": 2,
-          "comp": 5,
-          "reparto": {
-            "PT": 4,
-            "S1": 3
-          }
-        },
-        "SEN2": {
-          "cdmx": 2,
-          "comp": 6,
+          "comp": 3,
           "reparto": {
             "PT": 3,
-            "S1": 1,
-            "S2": 4
+            "S1": 2
           }
         },
-        "SEN1": {
+        "DPM": {
           "cdmx": 2,
-          "comp": 6,
+          "comp": 3,
           "reparto": {
-            "PT": 4,
-            "S2": 2,
+            "PT": 3,
             "S1": 2
           }
         },
-        "ESP": {
+        "AAR": {
           "cdmx": 0,
-          "comp": 6,
+          "comp": 3,
           "reparto": {
-            "S2": 4,
-            "S1": 2
+            "PT": 2,
+            "S1": 1
           }
         }
       }
     },
     {
       "id": "MI-2",
+      "mes": 2,
+      "nombre": "Trabajo de campo de S1 y S2",
+      "objeto": "Trabajo de campo en Boca de Chila y Chacala-Las Cuevas: recursos, experiencias y prestadores (S2) y entrevistas para el modelo de relación (S1).",
+      "tareasCdmx": [],
+      "tareasComp": [
+        "S2-1.1",
+        "S2-3.1",
+        "S1-1.5"
+      ],
+      "servicios": [
+        "S1",
+        "S2"
+      ],
+      "participantes": {
+        "DPM": {
+          "cdmx": 0,
+          "comp": 5,
+          "reparto": {
+            "S1": 2,
+            "S2": 3
+          }
+        },
+        "MAV": {
+          "cdmx": 0,
+          "comp": 5,
+          "reparto": {
+            "S2": 5
+          }
+        },
+        "LUP": {
+          "cdmx": 0,
+          "comp": 5,
+          "reparto": {
+            "S2": 5
+          }
+        },
+        "AAR": {
+          "cdmx": 0,
+          "comp": 5,
+          "reparto": {
+            "S1": 3,
+            "S2": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "MI-3",
       "mes": 3,
       "nombre": "Validación en territorio y presentación de los primeros entregables",
-      "objeto": "Talleres de validación del modelo de relación (S1) e identificación de prestadores (S2) en el territorio; presentación en FONATUR del Plan Director, el marco de posicionamiento y la propuesta de marca. Final del M2 y comienzo del M3.",
+      "objeto": "Talleres de validación del modelo de relación (S1) e identificación de prestadores (S2); presentación en FONATUR del Plan Director, el marco de posicionamiento y la propuesta de marca.",
       "tareasCdmx": [
         "S1-1.7",
         "S2-1.5",
@@ -569,83 +714,58 @@ window.MODELO_PUBLICADO = {
         "S2"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
           "cdmx": 2,
-          "comp": 4,
-          "reparto": {
-            "S1": 5,
-            "S2": 1
-          }
-        },
-        "ASE": {
-          "cdmx": 2,
-          "comp": 4,
-          "reparto": {
-            "S1": 5,
-            "S2": 1
-          }
-        },
-        "SEN2": {
-          "cdmx": 2,
-          "comp": 4,
-          "reparto": {
-            "S2": 6
-          }
-        },
-        "SEN1": {
-          "cdmx": 2,
-          "comp": 4,
+          "comp": 3,
           "reparto": {
             "S1": 3,
-            "S2": 3
-          }
-        },
-        "ESP": {
-          "cdmx": 0,
-          "comp": 4,
-          "reparto": {
-            "S1": 2,
             "S2": 2
           }
-        }
-      }
-    },
-    {
-      "id": "MX-1",
-      "mes": 4,
-      "nombre": "Trabajo de campo del equipo de México",
-      "objeto": "Identificación y diagnóstico de prestadores, valoración de experiencias en funcionamiento y preparación de los talleres de co-diseño.",
-      "tareasCdmx": [],
-      "tareasComp": [
-        "S2-3.2",
-        "S2-3.3",
-        "S2-3.5"
-      ],
-      "servicios": [
-        "S2"
-      ],
-      "participantes": {
-        "SEN1": {
-          "cdmx": 0,
-          "comp": 4,
+        },
+        "DPM": {
+          "cdmx": 2,
+          "comp": 3,
           "reparto": {
-            "S2": 4
+            "S1": 3,
+            "S2": 2
           }
         },
-        "ESP": {
-          "cdmx": 0,
-          "comp": 5,
+        "TON": {
+          "cdmx": 2,
+          "comp": 0,
           "reparto": {
-            "S2": 5
+            "S1": 2
+          }
+        },
+        "MAV": {
+          "cdmx": 2,
+          "comp": 0,
+          "reparto": {
+            "S2": 2
+          }
+        },
+        "AAR": {
+          "cdmx": 0,
+          "comp": 3,
+          "reparto": {
+            "S1": 2,
+            "S2": 1
+          }
+        },
+        "LUP": {
+          "cdmx": 0,
+          "comp": 3,
+          "reparto": {
+            "S2": 3
           }
         }
       }
     },
     {
-      "id": "MI-3",
+      "id": "MI-4",
       "mes": 5,
       "nombre": "Co-diseño de experiencias y proyectos críticos",
-      "objeto": "Talleres de co-diseño de experiencias con prestadores y comunidades (S2) e identificación de proyectos críticos (S3) en el territorio; sesión de priorización de experiencias con FONATUR.",
+      "objeto": "Talleres de co-diseño de experiencias con prestadores y comunidades (S2) e identificación de proyectos críticos (S3); sesión de priorización con FONATUR.",
       "tareasCdmx": [
         "S2-3.8"
       ],
@@ -658,48 +778,54 @@ window.MODELO_PUBLICADO = {
         "S3"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
+          "cdmx": 1,
+          "comp": 4,
+          "reparto": {
+            "S2": 2,
+            "S3": 3
+          }
+        },
+        "DPM": {
           "cdmx": 1,
           "comp": 5,
           "reparto": {
-            "S2": 1,
-            "S3": 5
+            "S2": 3,
+            "S3": 3
           }
         },
-        "SEN2": {
+        "MAV": {
           "cdmx": 1,
           "comp": 5,
           "reparto": {
             "S2": 6
           }
         },
-        "SEN1": {
-          "cdmx": 1,
-          "comp": 5,
-          "reparto": {
-            "S2": 4,
-            "S3": 2
-          }
-        },
-        "ESP": {
+        "LUP": {
           "cdmx": 0,
           "comp": 5,
           "reparto": {
-            "S2": 3,
-            "S3": 2
+            "S2": 4,
+            "S3": 1
+          }
+        },
+        "AAR": {
+          "cdmx": 0,
+          "comp": 5,
+          "reparto": {
+            "S3": 5
           }
         }
       }
     },
     {
-      "id": "MI-4",
+      "id": "MI-5",
       "mes": 9,
       "nombre": "Contraste y presentación de la cartera de proyectos",
-      "objeto": "Contraste de la cartera con actores clave en el territorio y presentación en FONATUR del portafolio de proyectos y la hoja de ruta; sesiones de trabajo sobre el sistema de inteligencia (S4). Final del M8 y comienzo del M9.",
+      "objeto": "Contraste de la cartera con actores clave en el territorio y presentación en FONATUR del portafolio de proyectos y la hoja de ruta; sesiones de trabajo sobre el sistema de inteligencia (S4).",
       "tareasCdmx": [
         "S3-3.2",
-        "S4-2.4",
-        "S3-2.4"
+        "S4-2.4"
       ],
       "tareasComp": [
         "S3-2.4"
@@ -709,7 +835,7 @@ window.MODELO_PUBLICADO = {
         "S4"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
           "cdmx": 2,
           "comp": 3,
           "reparto": {
@@ -717,38 +843,47 @@ window.MODELO_PUBLICADO = {
             "S4": 1
           }
         },
-        "ASE": {
+        "DPM": {
+          "cdmx": 2,
+          "comp": 3,
+          "reparto": {
+            "S3": 4,
+            "S4": 1
+          }
+        },
+        "TON": {
           "cdmx": 2,
           "comp": 0,
           "reparto": {
             "S3": 2
           }
         },
-        "SEN3": {
+        "DAN": {
           "cdmx": 2,
           "comp": 0,
           "reparto": {
             "S4": 2
           }
         },
-        "SEN1": {
-          "cdmx": 2,
-          "comp": 3,
-          "reparto": {
-            "S3": 5
-          }
-        },
-        "ESP": {
+        "AAR": {
           "cdmx": 0,
           "comp": 3,
           "reparto": {
             "S3": 3
           }
+        },
+        "LUP": {
+          "cdmx": 0,
+          "comp": 3,
+          "reparto": {
+            "S3": 2,
+            "S4": 1
+          }
         }
       }
     },
     {
-      "id": "MI-5",
+      "id": "MI-6",
       "mes": 11,
       "nombre": "Estructura de gestión turística",
       "objeto": "Talleres de contraste de la estructura de gestión turística y la secuencia de creación del ente gestor con FONATUR y actores del territorio.",
@@ -762,21 +897,21 @@ window.MODELO_PUBLICADO = {
         "S4"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
           "cdmx": 2,
           "comp": 2,
           "reparto": {
             "S4": 4
           }
         },
-        "SEN3": {
+        "DPM": {
           "cdmx": 2,
           "comp": 2,
           "reparto": {
             "S4": 4
           }
         },
-        "SEN1": {
+        "AAR": {
           "cdmx": 0,
           "comp": 2,
           "reparto": {
@@ -786,10 +921,10 @@ window.MODELO_PUBLICADO = {
       }
     },
     {
-      "id": "MI-6",
+      "id": "MI-7",
       "mes": 15,
       "nombre": "Cierre y transferencia de capacidades",
-      "objeto": "Talleres de transferencia de capacidades al equipo técnico de FONATUR y presentación de conclusiones del proyecto. Final del M14 y comienzo del M15.",
+      "objeto": "Talleres de transferencia de capacidades al equipo técnico de FONATUR y presentación de conclusiones del proyecto.",
       "tareasCdmx": [
         "S5-4.4",
         "PT-3.2"
@@ -800,7 +935,7 @@ window.MODELO_PUBLICADO = {
         "S5"
       ],
       "participantes": {
-        "DIR": {
+        "DPE": {
           "cdmx": 3,
           "comp": 0,
           "reparto": {
@@ -808,7 +943,7 @@ window.MODELO_PUBLICADO = {
             "PT": 1
           }
         },
-        "ASE": {
+        "DPM": {
           "cdmx": 3,
           "comp": 0,
           "reparto": {
@@ -816,7 +951,7 @@ window.MODELO_PUBLICADO = {
             "PT": 1
           }
         },
-        "SEN1": {
+        "TON": {
           "cdmx": 3,
           "comp": 0,
           "reparto": {

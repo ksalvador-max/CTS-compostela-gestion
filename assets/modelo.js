@@ -19,13 +19,15 @@
       // Borradores con costes internos (v5 y v6): se conservan los datos del usuario
       // y se incorporan la estructura nueva del anexo (meses, entregables, % de pago, pesos)
       if (m.version >= 5 && m.roles && m.params) {
+        const soloParams = m.version < 8; // el equipo cambió en v8: solo se conservan los parámetros
         const n = clone(pub);
         const keepP = Object.assign({}, m.params);
         delete keepP.meses; delete keepP.facturacion;
         n.params = Object.assign(n.params, keepP);
-        ["roles", "equipo", "gabinete", "subcontratas", "ajustes", "appsScriptUrl"].forEach((k) => { if (m[k] != null) n[k] = m[k]; });
-        n.misiones = (m.misiones || n.misiones).map((mi) => (mi.id === "MI-6" && num(mi.mes) === 14 ? Object.assign({}, mi, { mes: 15 }) : mi));
-        n.meta = Object.assign({}, n.meta, { nombre: m.meta && m.meta.nombre ? m.meta.nombre : n.meta.nombre });
+        if (!soloParams) ["roles", "equipo", "gabinete", "subcontratas", "ajustes", "appsScriptUrl"].forEach((k) => { if (m[k] != null) n[k] = m[k]; });
+        else if (m.appsScriptUrl) n.appsScriptUrl = m.appsScriptUrl;
+        if (!soloParams) n.misiones = (m.misiones || n.misiones).map((mi) => (mi.id === "MI-6" && num(mi.mes) === 14 ? Object.assign({}, mi, { mes: 15 }) : mi));
+        if (!soloParams) n.meta = Object.assign({}, n.meta, { nombre: m.meta && m.meta.nombre ? m.meta.nombre : n.meta.nombre });
         n.migrado = true;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(n)); } catch (e) { /* nada */ }
         return n;
@@ -69,8 +71,14 @@
       transporte = cdmx > 0 && comp > 0 ? num(vp.morCdmx) + num(vp.cdmxComp) : comp > 0 ? num(vp.morComp) : num(vp.morCdmx);
     } else if (p.base === "LOC") {
       transporte = cdmx > 0 ? num(vp.cdmxComp) : 0;
+    } else if (p.base === "CDX") {
+      transporte = comp > 0 ? num(vp.cdmxComp) : 0;
     }
-    if (p.base === "LOC") {
+    if (p.base === "CDX") {
+      // Base en CDMX: el tramo en FONATUR no genera gasto
+      aloj = comp > 0 ? Math.max(comp - 1, 1) * num(vp.hotel) : 0;
+      dietas = comp * num(vp.dieta);
+    } else if (p.base === "LOC") {
       aloj = cdmx > 0 ? Math.max(cdmx, 1) * num(vp.hotel) : 0;
       dietas = cdmx * num(vp.dieta);
     } else {
@@ -253,6 +261,7 @@
     // Margen máximo que cabe en el techo con los costes actuales
     const netoTecho = techo / (1 + num(P.iva) / 100);
     const margenMaxTecho = netoTecho > 0 ? 1 - kFianza - (directos + estructura + contingencia) / netoTecho : 0;
+    const margenTecho = netoTecho - (directos + estructura + contingencia) - netoTecho * kFianza;
     // Factor precio / coste directo: tarifa implícita por día = coste interno por día × factor
     const factorPrecio = denom > 0 ? (1 + pEst + pCont) / denom : 0;
 
@@ -332,7 +341,7 @@
     return {
       N, S, campo, gab, dias, dist, viajes, subs, ajustesUsados,
       honMes, viaMes, subMes, directosMes, costeMes, directosSvcMes,
-      honIntMes, honInterno, honVenta, margenMaxTecho, factorPrecio, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
+      honIntMes, honInterno, honVenta, margenMaxTecho, margenTecho, netoTecho, factorPrecio, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
       honorarios, viajesTot, subTot, directos, estructura, contingencia, fianza, kFianza, anosFianza,
       costeTotal, margen, pvpNeto, iva, pvpIva, techo, holgura,
       devengado, porHitos, pctMes, pctTotal, cobro, horizonte, cobrosMes, salidasMes, saldoMes, acumulado, minAcum, mesMin,
