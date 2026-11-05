@@ -1,14 +1,14 @@
 /* CTS Compostela · Modelo publicado
    Escenario oficial publicado por el responsable del proyecto. Para actualizarlo: Presupuesto → Escenarios → «Descargar como modelo publicado». */
 window.MODELO_PUBLICADO = {
-  "version": 6,
+  "version": 7,
   "meta": {
     "nombre": "Esc. Base con perfiles",
     "actualizado": "2026-11-05",
-    "fuenteAnexo": "Anexo técnico del 26-10-2026"
+    "fuenteAnexo": "Anexo técnico del 04-11-2026"
   },
   "params": {
-    "meses": 14,
+    "meses": 15,
     "fechaFallo": "",
     "tipoCambio": 20.47,
     "iva": 16,
@@ -31,7 +31,8 @@ window.MODELO_PUBLICADO = {
       "morComp": 220
     },
     "diasProductivos": 220,
-    "tesoreriaPersonal": true
+    "tesoreriaPersonal": true,
+    "facturacion": "hitos"
   },
   "roles": {
     "DIR": {
@@ -137,6 +138,7 @@ window.MODELO_PUBLICADO = {
         2.14,
         2.14,
         8.64,
+        10.64,
         10.64
       ]
     },
@@ -159,6 +161,7 @@ window.MODELO_PUBLICADO = {
         1.5,
         2,
         3,
+        1,
         1
       ]
     },
@@ -175,6 +178,7 @@ window.MODELO_PUBLICADO = {
         22.33,
         23.67,
         5.5,
+        0,
         0,
         0,
         0,
@@ -203,6 +207,7 @@ window.MODELO_PUBLICADO = {
         4,
         4,
         1,
+        0,
         0
       ]
     },
@@ -224,6 +229,7 @@ window.MODELO_PUBLICADO = {
         9.64,
         9.64,
         4.14,
+        0.64,
         0.64,
         0.64
       ]
@@ -247,6 +253,7 @@ window.MODELO_PUBLICADO = {
         8.84,
         8.84,
         9.34,
+        6.34,
         6.34
       ]
     }
@@ -256,115 +263,151 @@ window.MODELO_PUBLICADO = {
       "cod": "PT1",
       "svc": "PT",
       "mes": 1,
-      "nombre": "Plan de trabajo del proyecto"
-    },
-    {
-      "cod": "S1-E01",
-      "svc": "S1",
-      "mes": 3,
-      "nombre": "Plan Director de Estrategia Turística del CTS Compostela"
-    },
-    {
-      "cod": "S1-E02",
-      "svc": "S1",
-      "mes": 5,
-      "nombre": "Hoja de ruta para el sistema CTS de FONATUR"
-    },
-    {
-      "cod": "S1-E03",
-      "svc": "S1",
-      "mes": 14,
-      "nombre": "Sistema de seguimiento y actualización de la estrategia"
+      "nombre": "Plan de trabajo del proyecto",
+      "num": 1,
+      "pct": 20
     },
     {
       "cod": "S2-E01",
       "svc": "S2",
       "mes": 3,
-      "nombre": "Marco de posicionamiento estratégico del CTS Compostela"
-    },
-    {
-      "cod": "S2-E02",
-      "svc": "S2",
-      "mes": 7,
-      "nombre": "Portafolio ejecutivo de productos turísticos"
+      "nombre": "Marco de posicionamiento estratégico del CTS Compostela",
+      "num": 2,
+      "pct": 15
     },
     {
       "cod": "S2-E03",
       "svc": "S2",
       "mes": 3,
-      "nombre": "Propuesta de marca del programa CTS"
+      "nombre": "Propuesta de marca del programa CTS",
+      "num": 3,
+      "pct": 0
+    },
+    {
+      "cod": "S1-E01",
+      "svc": "S1",
+      "mes": 3,
+      "nombre": "Plan Director de Estrategia Turística del CTS Compostela",
+      "num": 4,
+      "pct": 0
     },
     {
       "cod": "S2-E04",
       "svc": "S2",
       "mes": 4,
-      "nombre": "Manual de identidad turística del programa CTS"
+      "nombre": "Manual de identidad turística del programa CTS",
+      "num": 5,
+      "pct": 5
     },
     {
-      "cod": "S3-E01",
-      "svc": "S3",
-      "mes": 9,
-      "nombre": "Portafolio de proyectos turísticos estratégicos del CTS Compostela"
+      "cod": "S1-E02",
+      "svc": "S1",
+      "mes": 5,
+      "nombre": "Hoja de ruta para el sistema CTS de FONATUR",
+      "num": 6,
+      "pct": 5
     },
     {
-      "cod": "S3-E02",
-      "svc": "S3",
-      "mes": 9,
-      "nombre": "Documento de priorización y hoja de ruta de desarrollo (corto, mediano y largo plazo)"
-    },
-    {
-      "cod": "S3-E03",
-      "svc": "S3",
-      "mes": 13,
-      "nombre": "Deck de presentación institucional para FONATUR"
-    },
-    {
-      "cod": "S4-E01",
-      "svc": "S4",
-      "mes": 10,
-      "nombre": "Documento maestro del Sistema de Inteligencia Turística del CTS Compostela"
-    },
-    {
-      "cod": "S4-E02",
-      "svc": "S4",
-      "mes": 12,
-      "nombre": "Documento de la estructura de gestión turística y secuencia de creación del ente gestor"
+      "cod": "S2-E02",
+      "svc": "S2",
+      "mes": 7,
+      "nombre": "Portafolio ejecutivo de productos turísticos",
+      "num": 7,
+      "pct": 10
     },
     {
       "cod": "S5-E01",
       "svc": "S5",
       "mes": 8,
-      "nombre": "Marco conceptual y estructura del Modelo Integral"
+      "nombre": "Marco conceptual y estructura del Modelo Integral",
+      "num": 8,
+      "pct": 5
     },
     {
-      "cod": "S5-E02",
-      "svc": "S5",
-      "mes": 6,
-      "mesFin": 14,
-      "nombre": "Instrumentos, análisis o desarrollos complementarios, conforme a cada solicitud"
+      "cod": "S3-E01",
+      "svc": "S3",
+      "mes": 9,
+      "nombre": "Portafolio de proyectos turísticos estratégicos del CTS Compostela",
+      "num": 9,
+      "pct": 10
+    },
+    {
+      "cod": "S3-E02",
+      "svc": "S3",
+      "mes": 9,
+      "nombre": "Documento de priorización y hoja de ruta de desarrollo (corto, mediano y largo plazo)",
+      "num": 10,
+      "pct": 0
+    },
+    {
+      "cod": "S4-E01",
+      "svc": "S4",
+      "mes": 10,
+      "nombre": "Documento maestro del Sistema de Inteligencia Turística del CTS Compostela",
+      "num": 11,
+      "pct": 5
+    },
+    {
+      "cod": "S4-E02",
+      "svc": "S4",
+      "mes": 12,
+      "nombre": "Documento de la estructura de gestión turística y secuencia de creación del ente gestor",
+      "num": 12,
+      "pct": 10
     },
     {
       "cod": "S5-E03",
       "svc": "S5",
       "mes": 12,
-      "nombre": "Metodología y caja de herramientas del Modelo"
+      "nombre": "Metodología y caja de herramientas del Modelo",
+      "num": 13,
+      "pct": 0
+    },
+    {
+      "cod": "S3-E03",
+      "svc": "S3",
+      "mes": 13,
+      "nombre": "Deck de presentación institucional para FONATUR",
+      "num": 14,
+      "pct": 5
     },
     {
       "cod": "S5-E04",
       "svc": "S5",
-      "mes": 14,
-      "nombre": "Modelo Integral final, con validación en el CTS Compostela, guía de adaptación a destinos nuevos o existentes e informe de transferencia de capacidades"
+      "mes": 15,
+      "nombre": "Modelo Integral final, con validación en el CTS Compostela, guía de adaptación a destinos nuevos o existentes e informe de transferencia de capacidades",
+      "num": 15,
+      "pct": 5
+    },
+    {
+      "cod": "S1-E03",
+      "svc": "S1",
+      "mes": 15,
+      "nombre": "Sistema de seguimiento y actualización de la estrategia",
+      "num": 16,
+      "pct": 0
+    },
+    {
+      "cod": "S5-E02",
+      "svc": "S5",
+      "mes": 6,
+      "mesFin": 15,
+      "nombre": "Instrumentos, análisis o desarrollos complementarios, conforme a cada solicitud",
+      "num": 17,
+      "pct": 0
     },
     {
       "cod": "S5-E05",
       "svc": "S5",
-      "mes": 14,
-      "nombre": "Memoria descriptiva de la consultoría"
+      "mes": 15,
+      "nombre": "Entregable final con todo el respaldo informativo y descriptivo de actividades, talleres, insumos y bibliografía generada",
+      "num": 18,
+      "pct": 5
     }
   ],
   "entregablesEjecutivos": {
-    "mes": 14,
-    "texto": "Síntesis ejecutiva del resultado final (≥ 50 páginas) y presentación de conclusiones (≥ 30 diapositivas), en los últimos 10 días hábiles del mes 14"
+    "mes": 15,
+    "texto": "Síntesis ejecutiva del resultado final (≥ 50 páginas) y presentación de conclusiones (≥ 30 diapositivas), en los últimos 10 días hábiles del mes 15"
   },
   "subcontratas": [
     {
@@ -744,9 +787,9 @@ window.MODELO_PUBLICADO = {
     },
     {
       "id": "MI-6",
-      "mes": 14,
+      "mes": 15,
       "nombre": "Cierre y transferencia de capacidades",
-      "objeto": "Talleres de transferencia de capacidades al equipo técnico de FONATUR y presentación de conclusiones del proyecto. Final del M13 y comienzo del M14.",
+      "objeto": "Talleres de transferencia de capacidades al equipo técnico de FONATUR y presentación de conclusiones del proyecto. Final del M14 y comienzo del M15.",
       "tareasCdmx": [
         "S5-4.4",
         "PT-3.2"

@@ -199,7 +199,7 @@
     const netoMxn = R.pvpNeto * tc(), ivaMxn = R.iva * tc(), totMxn = R.pvpIva * tc();
     $("#p-resumen").innerHTML = `
       <h2>Resumen del presupuesto</h2>
-      <p class="lead">Contrato cerrado de 14 meses, facturación mensual de servicios devengados. Importes calculados en EUR y convertidos a MXN a ${fmtNum(tc(), 2)} MXN/EUR.</p>
+      <p class="lead">Contrato cerrado de ${R.N} meses, ${R.porHitos ? "facturación por hitos de entregables (tabla 6.1 del anexo)" : "facturación mensual de servicios devengados"}. Importes calculados en EUR y convertidos a MXN a ${fmtNum(tc(), 2)} MXN/EUR.</p>
       ${avisosHtml()}
       <div class="kpis">
         <div class="kpi ${R.holgura < 0 ? "alert" : "good"}"><div class="l">Precio IVA incluido</div><div class="v">${fmtEur(R.pvpIva)}</div><div class="s">${fmtMxn(totMxn)}</div></div>
@@ -295,11 +295,12 @@
           ${prow("Emisión de la factura", inp("params.emisionDH", { step: 1 }), "días háb.", "Tras el cierre del mes devengado")}
           ${prow("Conformidad del administrador", inp("params.aceptacionDH", { step: 1 }), "días háb.", "Reporte de conformidad y revisión del CFDI (3 días para observaciones)")}
           ${prow("Plazo de pago", inp("params.pagoDH", { step: 1 }), "días háb.", "Máximo 17 tras la aceptación de la factura (numeral 15)")}
+          ${prow("Modalidad de facturación", sel("params.facturacion", [["hitos", "Por hitos de entregables"], ["devengado", "Mensual por devengado"]]), "", "Por hitos: % de la tabla 6.1 del anexo")}
           ${prow("Gastos de personal en tesorería", sel("params.tesoreriaPersonal", [["true", "Incluir"], ["false", "Excluir"]]), "", "Excluir para ver solo misiones, FutureBrand, estructura y fianza")}
           <p class="small muted" style="margin:10px 0 0">${c.habiles} días hábiles ≈ ${fmtNum(c.naturales)} días naturales desde el cierre del mes → el devengado del mes M se cobra en <b>M+${c.desfase}</b>.</p>
         </div></div>
         <div class="card"><div class="card-h">Línea temporal</div><div class="card-b">
-          ${prow("Duración", `<input type="number" value="${R.N}" disabled>`, "meses", "Contrato de 14 meses desde el fallo")}
+          ${prow("Duración", `<input type="number" value="${R.N}" disabled>`, "meses", "Vigencia según el anexo del 04-11-2026")}
           ${prow("Fecha del fallo", inp("params.fechaFallo", { type: "date" }), "", "Opcional: si se indica, los meses se muestran con fecha")}
         </div></div>
       </div>
@@ -310,7 +311,12 @@
         </div>
         <div class="scroll"><table class="mtab"><tr><th>Calendario de pago (% del importe)</th>${meses().map((i) => `<th class="n">${ml(i)}</th>`).join("")}<th class="n">Total</th></tr>
         <tr><td></td>${meses().map((i) => `<td>${inp(`subcontratas.0.pagos.${i}`, { nullable: true, step: 5 })}</td>`).join("")}<td class="n ${Math.abs(R.subs[0].pctTotal - 100) > 0.01 ? "neg" : ""}">${fmtNum(R.subs[0].pctTotal)} %</td></tr></table></div>
-      </div></div>` : ""}`;
+      </div></div>` : ""}
+      <div class="card"><div class="card-h">Hitos de facturación · tabla 6.1 del anexo <span class="hint">% del contrato que se factura con cada entregable · total ${fmtNum(R.pctTotal, 1)} %</span></div><div class="card-b flush scroll"><table>
+        <tr><th>Nº</th><th>Código</th><th>Entregable</th><th class="c">Mes</th><th class="n">% de pago</th><th class="n">Importe sin IVA</th></tr>
+        ${M.entregables.map((e, i) => `<tr${num(e.pct) ? "" : ' class="sub"'}><td class="mono">${e.num || ""}</td><td class="mono">${esc(e.cod)}</td><td>${esc(e.nombre)}</td><td class="c mono">${e.mesFin ? ml(e.mes) + "–" + ml(e.mesFin) : ml(e.mes)}</td><td style="width:90px">${inp(`entregables.${i}.pct`, { step: 1, cls: "w70" })}</td><td class="n">${num(e.pct) ? fmtEur(R.pctTotal ? R.pvpNeto * num(e.pct) / R.pctTotal : 0) : ""}</td></tr>`).join("")}
+        <tr class="tot"><td colspan="4">Total</td><td class="n ${Math.abs(R.pctTotal - 100) > 0.01 ? "neg" : ""}">${fmtNum(R.pctTotal, 1)} %</td><td class="n">${fmtEur(R.pvpNeto)}</td></tr>
+      </table></div><div class="card-b small muted">Cuando un mes agrupa varios entregables, el anexo asigna el porcentaje al conjunto (por ejemplo, 15 % en M3 por el marco de posicionamiento, la propuesta de marca y el Plan Director). La factura se emite a mes vencido tras la conformidad del administrador.</div></div>`;
   }
 
   /* ── Equipo y numeral 7 ──────────────────────────────────────── */
@@ -513,10 +519,10 @@
 
     $("#p-facturacion").innerHTML = `
       <h2>Facturación y tesorería</h2>
-      <p class="lead">Pagos mensuales de los servicios devengados, a mes vencido (numeral 15). El devengado de cada mes es proporcional a su coste directo real (honorarios a coste interno, misiones y subcontratas). Cobro estimado en M+${d}: ${R.cobro.habiles} días hábiles entre emisión, conformidad del administrador y pago. Tesorería ${R.incluirPersonal ? "con" : "<b>sin</b>"} gastos de personal (configurable en Parámetros).</p>
+      <p class="lead">${R.porHitos ? "Facturación conforme a la planificación de entregables de la tabla 6.1 del anexo: cada hito factura su porcentaje del contrato, a mes vencido (numeral 15)." : "Pagos mensuales de los servicios devengados, a mes vencido. El devengado de cada mes es proporcional a su coste directo real."} Cobro estimado en M+${d}: ${R.cobro.habiles} días hábiles entre emisión, conformidad del administrador y pago. Tesorería ${R.incluirPersonal ? "con" : "<b>sin</b>"} gastos de personal (configurable en Parámetros).</p>
       ${R.avisos.filter((a) => a.txt.startsWith("Meses facturables")).map((a) => `<div class="avisos"><div class="aviso info">${esc(a.txt)}</div></div>`).join("")}
       <div class="card"><div class="card-h">Calendario de facturación <span class="hint">Entregable en granate · producto bajo demanda en ocre</span></div><div class="card-b flush scroll"><table>
-        <tr><th>Mes devengado</th><th class="n">Coste del mes</th><th class="n">Devengado sin IVA</th><th class="n">% contrato</th><th class="n">Factura IVA incl.</th><th class="n">Factura MXN</th><th class="c">Emisión</th><th class="c">Cobro</th><th>Soporte de la conformidad</th></tr>
+        <tr><th>Mes</th><th class="n">Coste del mes</th><th class="n">${R.porHitos ? "Factura sin IVA" : "Devengado sin IVA"}</th><th class="n">% contrato</th><th class="n">Factura IVA incl.</th><th class="n">Factura MXN</th><th class="c">Emisión</th><th class="c">Cobro</th><th>Soporte de la conformidad</th></tr>
         ${filas}
         <tr class="tot"><td>Total</td><td class="n">${fmtEur(R.costeReal)}</td><td class="n">${fmtEur(R.pvpNeto)}</td><td class="n">100 %</td><td class="n">${fmtEur(R.pvpIva)}</td><td class="n">${fmtMxn(R.pvpIva * tc())}</td><td colspan="3"></td></tr>
       </table></div></div>

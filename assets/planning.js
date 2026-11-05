@@ -63,7 +63,7 @@
     const porMesEnt = ms.map((i) => M.entregables.filter((e) => e.mes === i && !e.mesFin).length);
     $("#p-cronograma").innerHTML = `
       <h2>Cronograma general de ejecución</h2>
-      <p class="lead">Catorce meses contados desde el fallo. La intensidad de cada barra refleja la carga de trabajo del servicio en el mes; los rombos marcan los entregables, que se presentan dentro de los primeros 10 días hábiles del mes indicado.</p>
+      <p class="lead">${R.N} meses contados desde el fallo. La intensidad de cada barra refleja la carga de trabajo del servicio en el mes; los rombos marcan los entregables, que se presentan dentro de los primeros 10 días hábiles del mes indicado.</p>
       <div class="kpis">
         <div class="kpi"><div class="l">Duración</div><div class="v">${R.N} meses</div></div>
         <div class="kpi"><div class="l">Servicios</div><div class="v">PT + 5</div></div>
@@ -100,14 +100,14 @@
     }).join("");
     const tabla = M.servicios.map((s) => {
       const es = M.entregables.filter((e) => e.svc === s.id);
-      return es.map((e, k) => `<tr>${k === 0 ? `<td rowspan="${es.length}" style="vertical-align:top">${tag(s.id)}<div class="small">${esc(s.nombre)}</div></td>` : ""}<td class="mono">${e.cod}</td><td>${esc(e.nombre)}</td><td class="mono">${e.mesFin ? `${ml(e.mes)}–${ml(e.mesFin)}` : ml(e.mes)}</td></tr>`).join("");
+      return es.map((e, k) => `<tr>${k === 0 ? `<td rowspan="${es.length}" style="vertical-align:top">${tag(s.id)}<div class="small">${esc(s.nombre)}</div></td>` : ""}<td class="mono">${e.num || ""}</td><td class="mono">${e.cod}</td><td>${esc(e.nombre)}</td><td class="mono">${e.mesFin ? `${ml(e.mes)}–${ml(e.mesFin)}` : ml(e.mes)}</td><td class="n">${num(e.pct) ? e.pct + " %" : ""}</td></tr>`).join("");
     }).join("");
     $("#p-entregables").innerHTML = `
       <h2>Entregables</h2>
-      <p class="lead">Codificación por servicio conforme al numeral 5 del anexo técnico. Cada entregable se presenta en dos ejemplares impresos y en formato digital.</p>
+      <p class="lead">Numeración y fechas conforme a los numerales 5 y 6.1 del anexo técnico. Cada entregable se presenta en tres ejemplares impresos y en formato digital editable (tres USB). El porcentaje de pago se aplica al conjunto de entregables del mes.</p>
       <div class="entmes" style="margin-bottom:20px">${tarjetas}</div>
       <div class="card"><div class="card-h">Relación de entregables por servicio</div><div class="card-b flush scroll"><table>
-        <tr><th>Servicio</th><th>Código</th><th>Entregable</th><th>Fecha</th></tr>${tabla}
+        <tr><th>Servicio</th><th>Nº</th><th>Código</th><th>Entregable</th><th>Fecha</th><th class="n">% de pago</th></tr>${tabla}
       </table></div></div>`;
   }
 

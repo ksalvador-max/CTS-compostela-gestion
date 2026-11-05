@@ -13,8 +13,24 @@
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       const m = raw ? JSON.parse(raw) : null;
-      // Un borrador de una versión anterior del modelo no se reutiliza
-      return m && global.MODELO_PUBLICADO && m.version === global.MODELO_PUBLICADO.version ? m : null;
+      const pub = global.MODELO_PUBLICADO;
+      if (!m || !pub) return null;
+      if (m.version === pub.version) return m;
+      // Borradores con costes internos (v5 y v6): se conservan los datos del usuario
+      // y se incorporan la estructura nueva del anexo (meses, entregables, % de pago, pesos)
+      if (m.version >= 5 && m.roles && m.params) {
+        const n = clone(pub);
+        const keepP = Object.assign({}, m.params);
+        delete keepP.meses; delete keepP.facturacion;
+        n.params = Object.assign(n.params, keepP);
+        ["roles", "equipo", "gabinete", "subcontratas", "ajustes", "appsScriptUrl"].forEach((k) => { if (m[k] != null) n[k] = m[k]; });
+        n.misiones = (m.misiones || n.misiones).map((mi) => (mi.id === "MI-6" && num(mi.mes) === 14 ? Object.assign({}, mi, { mes: 15 }) : mi));
+        n.meta = Object.assign({}, n.meta, { nombre: m.meta && m.meta.nombre ? m.meta.nombre : n.meta.nombre });
+        n.migrado = true;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(n)); } catch (e) { /* nada */ }
+        return n;
+      }
+      return null;
     } catch (e) { return null; }
   }
   function guardarLocal(modelo) {
@@ -250,7 +266,14 @@
     // Devengado y facturación
     const cobro = mesesCobro(P);
     const factor = directos > 0 ? pvpNeto / directos : 0;
-    const devengado = directosMes.map((d) => d * factor);
+    const porHitos = P.facturacion !== "devengado";
+    const pctMes = zeros(N);
+    m.entregables.forEach((e) => { const i = Math.min(Math.max(num(e.mes), 1), N) - 1; pctMes[i] += num(e.pct); });
+    const pctTotal = sum(pctMes);
+    if (porHitos && Math.abs(pctTotal - 100) > 0.01) avisos.push({ tipo: "error", txt: `Los porcentajes de pago de los entregables suman ${fmtNum(pctTotal, 1)} % en lugar de 100 %. La facturación se reparte en proporción.` });
+    const devengado = porHitos
+      ? pctMes.map((p) => (pctTotal > 0 ? pvpNeto * p / pctTotal : 0))
+      : directosMes.map((d) => d * factor);
     const horizonte = N + cobro.desfase;
     const cobrosMes = zeros(horizonte), salidasMes = zeros(horizonte);
     pagoMes.forEach((c, i) => { salidasMes[i] = c; });
@@ -303,7 +326,7 @@
 
     if (holgura < 0) avisos.unshift({ tipo: "error", txt: `El precio con IVA supera el techo en ${fmtEur(-holgura)} (${fmtPct(-holgura / techo)}). Con los costes actuales, el margen máximo que cabe en el techo es ${fmtPct(margenMaxTecho)}.` });
     if (denom <= 0) avisos.unshift({ tipo: "error", txt: "El margen y la fianza suman 100 % o más: el precio no puede calcularse." });
-    const mesesSinEntregable = soporte.filter((s) => !s.entregables.length && !s.bajoDemanda.length && devengado[s.mes - 1] > 0).map((s) => "M" + s.mes);
+    const mesesSinEntregable = porHitos ? [] : soporte.filter((s) => !s.entregables.length && !s.bajoDemanda.length && devengado[s.mes - 1] > 0).map((s) => "M" + s.mes);
     if (mesesSinEntregable.length) avisos.push({ tipo: "info", txt: `Meses facturables sin entregable formal ni producto bajo demanda: ${mesesSinEntregable.join(", ")}. La conformidad del administrador se apoyará en el informe de avance.` });
 
     return {
@@ -312,7 +335,7 @@
       honIntMes, honInterno, honVenta, margenMaxTecho, factorPrecio, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
       honorarios, viajesTot, subTot, directos, estructura, contingencia, fianza, kFianza, anosFianza,
       costeTotal, margen, pvpNeto, iva, pvpIva, techo, holgura,
-      devengado, cobro, horizonte, cobrosMes, salidasMes, saldoMes, acumulado, minAcum, mesMin,
+      devengado, porHitos, pctMes, pctTotal, cobro, horizonte, cobrosMes, salidasMes, saldoMes, acumulado, minAcum, mesMin,
       soporte, porServicio, porPersona, diasTotales, diasCampo, vuelos, personasViaje, avisos
     };
   }
