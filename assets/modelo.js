@@ -186,9 +186,10 @@
       honPersona[p.id] = 0; intPersona[p.id] = 0;
       S.forEach((s) => {
         dist[p.id][s].forEach((d, i) => {
-          const c = d * t;
-          honMes[i] += c; honSvc[s] += c; honPersona[p.id] += c; directosSvcMes[s][i] += c;
-          honIntMes[i] += d * cd; intPersona[p.id] += d * cd;
+          // Coste interno (base del precio) y tarifa de venta (solo referencia)
+          const ci = d * cd;
+          honMes[i] += d * t; honPersona[p.id] += d * t;
+          honIntMes[i] += ci; intPersona[p.id] += ci; honSvc[s] += ci; directosSvcMes[s][i] += ci;
         });
       });
     });
@@ -212,9 +213,12 @@
       return { ...sc, pctTotal };
     });
 
-    const directosMes = honMes.map((h, i) => h + viaMes[i] + subMes[i]);
-    const honorarios = sum(honMes), viajesTot = sum(viaMes), subTot = sum(subMes);
-    const directos = honorarios + viajesTot + subTot;
+    // Precio = costes reales (honorarios a coste interno + misiones + subcontratas)
+    //          + estructura + contingencia + fianza + margen objetivo
+    const directosMes = honIntMes.map((h, i) => h + viaMes[i] + subMes[i]);
+    const honVenta = sum(honMes), honInterno = sum(honIntMes), viajesTot = sum(viaMes), subTot = sum(subMes);
+    const honorarios = honInterno;
+    const directos = honInterno + viajesTot + subTot;
     const P = m.params;
     const pEst = num(P.estructura) / 100, pCont = num(P.contingencia) / 100, pMg = num(P.margen) / 100;
     const estructura = directos * pEst;
@@ -230,20 +234,17 @@
     const pvpIva = pvpNeto + iva;
     const techo = num(P.techo);
     const holgura = techo - pvpIva;
+    // Margen máximo que cabe en el techo con los costes actuales
+    const netoTecho = techo / (1 + num(P.iva) / 100);
+    const margenMaxTecho = netoTecho > 0 ? 1 - kFianza - (directos + estructura + contingencia) / netoTecho : 0;
+    // Factor precio / coste directo: tarifa implícita por día = coste interno por día × factor
+    const factorPrecio = denom > 0 ? (1 + pEst + pCont) / denom : 0;
 
-    // Coste total mensual (estructura y contingencia proporcionales; fianza en M1)
     const costeMes = directosMes.map((d, i) => d * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
-
-    // Coste real: honorarios a coste interno (CBE / días productivos × días de dedicación)
-    const honInterno = sum(honIntMes);
-    const realDirMes = honIntMes.map((h, i) => h + viaMes[i] + subMes[i]);
-    const realDirectos = sum(realDirMes);
-    const realEstructura = realDirectos * pEst, realContingencia = realDirectos * pCont;
-    const costeReal = realDirectos + realEstructura + realContingencia + fianza;
-    const margenReal = pvpNeto - costeReal;
+    const realDirMes = directosMes, realDirectos = directos, realEstructura = estructura, realContingencia = contingencia;
+    const costeReal = costeTotal, margenReal = margen, costeRealMes = costeMes;
     const incluirPersonal = !(P.tesoreriaPersonal === false || P.tesoreriaPersonal === "false");
-    const costeRealMes = realDirMes.map((d, i) => d * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
-    const pagoMes = realDirMes.map((d, i) => (incluirPersonal ? d : d - honIntMes[i]) * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
+    const pagoMes = directosMes.map((d, i) => (incluirPersonal ? d : d - honIntMes[i]) * (1 + pEst + pCont) + (i === 0 ? fianza : 0));
     if (!(num(P.diasProductivos) > 0)) avisos.push({ tipo: "error", txt: "Indica los días productivos al año para calcular el coste interno de los honorarios." });
 
     // Devengado y facturación
@@ -292,7 +293,7 @@
       const dg = sum(S.map((s) => gab[p.id][s]));
       const mensual = zeros(N);
       S.forEach((s) => dist[p.id][s].forEach((d, i) => { mensual[i] += d; }));
-      return { id: p.id, tarifa: tarifa(m, p), diasCampo: dc, diasGab: dg, dias: dc + dg, honorarios: honPersona[p.id], costeDia: costeDia(m, p), cbe: cbe(m, p), costeInterno: intPersona[p.id], mensual };
+      return { id: p.id, tarifa: tarifa(m, p), diasCampo: dc, diasGab: dg, dias: dc + dg, honorarios: intPersona[p.id], venta: honPersona[p.id], tarifaImplicita: costeDia(m, p) * factorPrecio, costeDia: costeDia(m, p), cbe: cbe(m, p), costeInterno: intPersona[p.id], mensual };
     });
 
     const diasTotales = sum(porPersona.map((p) => p.dias));
@@ -300,7 +301,7 @@
     const vuelos = sum(viajes.map((v) => v.vuelos));
     const personasViaje = sum(viajes.map((v) => v.personas));
 
-    if (holgura < 0) avisos.unshift({ tipo: "error", txt: `El precio con IVA supera el techo en ${fmtEur(-holgura)} (${fmtPct(-holgura / techo)}).` });
+    if (holgura < 0) avisos.unshift({ tipo: "error", txt: `El precio con IVA supera el techo en ${fmtEur(-holgura)} (${fmtPct(-holgura / techo)}). Con los costes actuales, el margen máximo que cabe en el techo es ${fmtPct(margenMaxTecho)}.` });
     if (denom <= 0) avisos.unshift({ tipo: "error", txt: "El margen y la fianza suman 100 % o más: el precio no puede calcularse." });
     const mesesSinEntregable = soporte.filter((s) => !s.entregables.length && !s.bajoDemanda.length && devengado[s.mes - 1] > 0).map((s) => "M" + s.mes);
     if (mesesSinEntregable.length) avisos.push({ tipo: "info", txt: `Meses facturables sin entregable formal ni producto bajo demanda: ${mesesSinEntregable.join(", ")}. La conformidad del administrador se apoyará en el informe de avance.` });
@@ -308,7 +309,7 @@
     return {
       N, S, campo, gab, dias, dist, viajes, subs, ajustesUsados,
       honMes, viaMes, subMes, directosMes, costeMes, directosSvcMes,
-      honIntMes, honInterno, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
+      honIntMes, honInterno, honVenta, margenMaxTecho, factorPrecio, realDirectos, realEstructura, realContingencia, costeReal, margenReal, costeRealMes, pagoMes, incluirPersonal,
       honorarios, viajesTot, subTot, directos, estructura, contingencia, fianza, kFianza, anosFianza,
       costeTotal, margen, pvpNeto, iva, pvpIva, techo, holgura,
       devengado, cobro, horizonte, cobrosMes, salidasMes, saldoMes, acumulado, minAcum, mesMin,

@@ -1,7 +1,7 @@
 /* CTS Compostela · Modelo publicado
    Escenario oficial publicado por el responsable del proyecto. Para actualizarlo: Presupuesto → Escenarios → «Descargar como modelo publicado». */
 window.MODELO_PUBLICADO = {
-  "version": 5,
+  "version": 6,
   "meta": {
     "nombre": "Esc. Base con perfiles",
     "actualizado": "2026-11-05",

@@ -181,7 +181,7 @@
       <div class="k"><span>PVP IVA incl.</span><b>${fmtEur(R.pvpIva)}</b></div>
       <div class="k"><span>En MXN</span><b>${fmtMxn(R.pvpIva * tc())}</b></div>
       <div class="k"><span>Techo ${fmtEur(R.techo)}</span><b class="${h < 0 ? "neg" : "pos"}">${h < 0 ? "Excede " + fmtEur(-h) : "Holgura " + fmtEur(h)}</b></div>
-      <div class="k"><span>Margen real</span><b class="${R.margenReal < 0 ? "neg" : ""}">${fmtEur(R.margenReal)} · ${fmtPct(R.pvpNeto ? R.margenReal / R.pvpNeto : 0)}</b></div>
+      <div class="k"><span>Margen</span><b>${fmtEur(R.margen)} · ${fmtPct(R.pvpNeto ? R.margen / R.pvpNeto : 0)}</b></div>
       <div class="k"><span>Días-persona</span><b>${fmtDias(R.diasTotales)}</b></div>
       <div class="k"><span>Financiación máx.</span><b class="${R.minAcum < 0 ? "neg" : ""}">${fmtEur(-R.minAcum)}</b></div>
       <div class="estado">${window.CTS.cargarLocal() ? "Cambios guardados en este navegador" : "Modelo publicado"}</div>`;
@@ -205,14 +205,14 @@
         <div class="kpi ${R.holgura < 0 ? "alert" : "good"}"><div class="l">Precio IVA incluido</div><div class="v">${fmtEur(R.pvpIva)}</div><div class="s">${fmtMxn(totMxn)}</div></div>
         <div class="kpi"><div class="l">Techo vigente (IVA incl.)</div><div class="v">${fmtEur(R.techo)}</div><div class="s">${R.holgura < 0 ? "Excede en " + fmtEur(-R.holgura) : "Holgura " + fmtEur(R.holgura)}</div></div>
         <div class="kpi"><div class="l">Precio neto sin IVA</div><div class="v">${fmtEur(R.pvpNeto)}</div><div class="s">${fmtMxn(netoMxn)}</div></div>
-        <div class="kpi ${R.margenReal < 0 ? "alert" : ""}"><div class="l">Margen real</div><div class="v">${fmtEur(R.margenReal)}</div><div class="s">${fmtPct(R.margenReal / pv)} · comercial ${fmtPct(R.margen / pv)}</div></div>
+        <div class="kpi"><div class="l">Margen</div><div class="v">${fmtEur(R.margen)}</div><div class="s">${fmtPct(R.margen / pv)} · máx. en techo ${fmtPct(R.margenMaxTecho)}</div></div>
         <div class="kpi"><div class="l">Días-persona</div><div class="v">${fmtDias(R.diasTotales)}</div><div class="s">${fmtDias(R.diasCampo)} campo · ${fmtDias(R.diasTotales - R.diasCampo)} gabinete</div></div>
         <div class="kpi ${R.minAcum < 0 ? "alert" : ""}"><div class="l">Financiación máxima</div><div class="v">${fmtEur(-R.minAcum)}</div><div class="s">Pico en ${R.mesMin ? ml(R.mesMin) : "—"} · cobro a M+${R.cobro.desfase}</div></div>
       </div>
       <div class="grid g2">
         <div class="card"><div class="card-h">Composición del precio</div><div class="card-b flush"><table>
           <tr><th>Concepto</th><th class="n">EUR</th><th class="n">MXN</th><th class="n">% PVP neto</th></tr>
-          ${fila("Honorarios del equipo (a tarifa de venta)", R.honorarios, "sub")}
+          ${fila("Honorarios del equipo (coste interno)", R.honorarios, "sub")}
           ${fila("Misiones a México (desplazamientos)", R.viajesTot, "sub")}
           ${fila("Subcontratas (FutureBrand)", R.subTot, "sub")}
           ${fila("Costes directos", R.directos, "tot")}
@@ -220,24 +220,11 @@
           ${fila(`Contingencia por penas y deductivas (${fmtNum(P.contingencia, 1)} %)`, R.contingencia, "sub")}
           ${fila("Coste de la fianza de cumplimiento", R.fianza, "sub")}
           ${fila("Coste total", R.costeTotal, "tot")}
-          ${fila(`Margen comercial (${fmtNum(P.margen, 1)} % s/ PVP)`, R.margen, "sub")}
+          ${fila(`Margen (${fmtNum(P.margen, 1)} % s/ PVP)`, R.margen, "sub")}
           ${fila("Precio neto sin IVA", R.pvpNeto, "tot")}
           ${fila(`IVA (${fmtNum(P.iva, 0)} %)`, R.iva, "sub")}
           ${fila("Precio IVA incluido", R.pvpIva, "hl")}
         </table></div></div>
-        <div class="card"><div class="card-h">Rentabilidad real <span class="hint">Honorarios a coste interno (CBE / días productivos)</span></div><div class="card-b flush"><table>
-          <tr><th>Concepto</th><th class="n">EUR</th><th class="n">MXN</th><th class="n">% PVP neto</th></tr>
-          ${fila("Precio neto sin IVA", R.pvpNeto, "tot")}
-          ${fila("Honorarios a coste interno", R.honInterno, "sub")}
-          ${fila("Misiones a México (desplazamientos)", R.viajesTot, "sub")}
-          ${fila("Subcontratas (FutureBrand)", R.subTot, "sub")}
-          ${fila(`Estructura (${fmtNum(P.estructura, 1)} %)`, R.realEstructura, "sub")}
-          ${fila(`Contingencia (${fmtNum(P.contingencia, 1)} %)`, R.realContingencia, "sub")}
-          ${fila("Coste de la fianza de cumplimiento", R.fianza, "sub")}
-          ${fila("Coste real", R.costeReal, "tot")}
-          ${fila("Margen real", R.margenReal, "hl")}
-        </table>
-        <div class="card-b small muted">Diferencia de honorarios: coste interno ${fmtEur(R.honInterno)} frente a ${fmtEur(R.honorarios)} a tarifa de venta (${R.honInterno > R.honorarios ? "el coste supera a la venta en " + fmtEur(R.honInterno - R.honorarios) : "la venta cubre el coste con " + fmtEur(R.honorarios - R.honInterno) + " de diferencia"}).</div></div></div>
         <div class="card"><div class="card-h">Formato de propuesta económica <span class="hint">Partida única · M.N.</span></div><div class="card-b">
           <table>
             <tr><td>Monto total de la consultoría (sin IVA)</td><td class="n">${fmtMxn(netoMxn)}</td></tr>
@@ -250,6 +237,11 @@
           <p class="small muted" style="margin-top:10px">Importes orientativos: el tipo de cambio aplicado es un parámetro. Fianza de cumplimiento: ${fmtMxn(R.pvpNeto * tc() * num(P.fianzaPct) / 100)} (${fmtNum(P.fianzaPct, 0)} % sin IVA).</p>
         </div></div>
       </div>
+      <div class="card"><div class="card-h">Tarifas por perfil <span class="hint">Coste interno, tarifa implícita en el precio y tarifa de venta de referencia</span></div><div class="card-b flush scroll"><table>
+          <tr><th>Perfil</th><th class="n">Días</th><th class="n">Coste €/día</th><th class="n">Tarifa implícita €/día</th><th class="n">Tarifa de venta €/día</th></tr>
+          ${M.equipo.map((p, i) => { const pp = R.porPersona[i]; return `<tr${pp.dias ? "" : ' class="sub"'}><td>${esc(p.nombre)}</td><td class="n">${fmtDias(pp.dias)}</td><td class="n">${fmtEur(pp.costeDia)}</td><td class="n"><b>${fmtEur(pp.tarifaImplicita)}</b></td><td class="n">${fmtEur(pp.tarifa)}</td></tr>`; }).join("")}
+        </table>
+        <div class="card-b small muted">Tarifa implícita = coste por día × ${fmtNum(R.factorPrecio, 3)} (estructura, contingencia, fianza y margen). Es la tarifa equivalente a presentar si FONATUR pide el desglose. La tarifa de venta de Parámetros queda como referencia comercial y no interviene en el precio.</div></div></div>
       <div class="card"><div class="card-h">Coste y precio por servicio <span class="hint">Estructura, contingencia, fianza y margen se reparten en proporción a los costes directos</span></div><div class="card-b flush scroll"><table>
         <tr><th>Servicio</th><th class="n">Días campo</th><th class="n">Días gabinete</th><th class="n">Honorarios</th><th class="n">Desplaz.</th><th class="n">Subcontr.</th><th class="n">Coste total</th><th class="n">PVP neto</th><th class="n">PVP neto MXN</th><th class="n">% del total</th></tr>
         ${R.porServicio.map((s) => `<tr><td>${svcTag(s.id, true)}</td><td class="n">${fmtDias(s.diasCampo)}</td><td class="n">${fmtDias(s.diasGab)}</td><td class="n">${fmtEur(s.honorarios)}</td><td class="n">${fmtEur(s.viajes)}</td><td class="n">${fmtEur(s.subcontratas)}</td><td class="n">${fmtEur(s.coste)}</td><td class="n">${fmtEur(s.pvpNeto)}</td><td class="n">${fmtMxn(s.pvpNeto * tc())}</td><td class="n">${fmtPct(s.share)}</td></tr>`).join("")}
@@ -268,9 +260,9 @@
       <h2>Parámetros</h2>
       <p class="lead">Todos los cálculos se hacen en EUR. Los cambios se guardan automáticamente en este navegador; para compartirlos, usa la pestaña Escenarios.</p>
       <div class="grid g3">
-        <div class="card"><div class="card-h">Tarifas de venta (€/día)</div><div class="card-b">
+        <div class="card"><div class="card-h">Tarifas de venta de referencia (€/día)</div><div class="card-b">
           ${Object.entries(M.roles).map(([k, r]) => prow(r.nombre, inp(`roles.${k}.tarifa`), "€/d", M.equipo.filter((p) => p.rol === k).map((p) => p.nombre).join(" · ") || "Sin perfiles asignados")).join("")}
-          <p class="small muted" style="margin:10px 0 0">Precio comercial de cada día de trabajo: base del precio de la propuesta.</p>
+          <p class="small muted" style="margin:10px 0 0">Solo referencia comercial: el precio se calcula con los costes internos más el margen. Compáralas con la tarifa implícita en Resumen.</p>
         </div></div>
         <div class="card"><div class="card-h">Costes internos de honorarios</div><div class="card-b">
           ${prow("Días productivos al año", inp("params.diasProductivos", { step: 1 }), "días", "Divisor del CBE para obtener el coste por día")}
@@ -290,7 +282,7 @@
           ${prow("IVA México", inp("params.iva", { step: 0.5 }), "%")}
           ${prow("Estructura", inp("params.estructura", { step: 0.5 }), "%", "Sobre costes directos")}
           ${prow("Contingencia", inp("params.contingencia", { step: 0.5 }), "%", "Penas convencionales (1 %/día, máx. 10 %) y deductivas (1 %)")}
-          ${prow("Margen", inp("params.margen", { step: 0.5 }), "%", "Sobre precio neto sin IVA")}
+          ${prow("Margen objetivo", inp("params.margen", { step: 0.5 }), "%", `Sobre precio neto sin IVA · máximo en techo: ${fmtPct(R.margenMaxTecho)}`)}
           ${prow("Techo presupuestario", inp("params.techo", { step: 1000 }), "€", "IVA incluido")}
         </div></div>
         <div class="card"><div class="card-h">Fianza de cumplimiento</div><div class="card-b">
@@ -334,7 +326,7 @@
         <td>${sel(`equipo.${i}.base`, baseOpts)}</td>
         <td class="n">${inp(`equipo.${i}.tarifa`, { nullable: true, cls: "w90", ph: M.roles[p.rol].tarifa })}</td>
         <td class="n">${fmtDias(pp.diasCampo)}</td><td class="n">${fmtDias(pp.diasGab)}</td><td class="n"><b>${fmtDias(pp.dias)}</b></td>
-        <td class="n">${fmtEur(pp.honorarios)}</td>
+        <td class="n">${fmtEur(pp.venta)}</td>
         <td class="n">${inp(`equipo.${i}.cbe`, { nullable: true, cls: "w90", step: 1000, ph: M.roles[p.rol].cbe })}</td>
         <td class="n">${fmtEur(pp.costeDia)}</td>
         <td class="n">${fmtEur(pp.costeInterno)}</td>
@@ -361,9 +353,9 @@
       <h2>Equipo y dedicación</h2>
       <p class="lead">Perfiles según el numeral 4.1 del anexo: director de proyecto, asesor estratégico, tres consultores senior y especialistas. Los especialistas se tratan como una bolsa única de días («consultor especialista»), cuya distribución entre personas se definirá más adelante. La tarifa de venta y el CBE individuales son opcionales; si se dejan vacíos se aplican los del rol (pestaña Parámetros).</p>
       <div class="card"><div class="card-h">Equipo <span class="hint">Base habitual: determina el coste de cada misión</span></div><div class="card-b flush scroll"><table>
-        <tr><th>Nombre</th><th>Rol</th><th>Base</th><th class="n">Tarifa €/d</th><th class="n">Campo</th><th class="n">Gabinete</th><th class="n">Total días</th><th class="n">Honorarios venta</th><th class="n">CBE €/año</th><th class="n">Coste €/día</th><th class="n">Coste interno</th></tr>
+        <tr><th>Nombre</th><th>Rol</th><th>Base</th><th class="n">Tarifa €/d</th><th class="n">Campo</th><th class="n">Gabinete</th><th class="n">Total días</th><th class="n">A tarifa de venta (ref.)</th><th class="n">CBE €/año</th><th class="n">Coste €/día</th><th class="n">Coste interno</th></tr>
         ${filasEquipo}
-        <tr class="tot"><td colspan="4">Total</td><td class="n">${fmtDias(R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales - R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales)}</td><td class="n">${fmtEur(R.honorarios)}</td><td></td><td></td><td class="n">${fmtEur(R.honInterno)}</td></tr>
+        <tr class="tot"><td colspan="4">Total</td><td class="n">${fmtDias(R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales - R.diasCampo)}</td><td class="n">${fmtDias(R.diasTotales)}</td><td class="n">${fmtEur(R.honVenta)}</td><td></td><td></td><td class="n">${fmtEur(R.honInterno)}</td></tr>
       </table></div></div>
 
       <div class="card"><div class="card-h">Días por servicio · campo y gabinete (numeral 7) <span class="hint">Campo = días en misiones, repartidos por servicio · Gabinete editable</span></div>
@@ -521,10 +513,10 @@
 
     $("#p-facturacion").innerHTML = `
       <h2>Facturación y tesorería</h2>
-      <p class="lead">Pagos mensuales de los servicios devengados, a mes vencido (numeral 15). El devengado de cada mes es proporcional a su coste directo a tarifa de venta (honorarios, misiones y subcontratas). El coste real del mes usa los honorarios a coste interno (días de dedicación × CBE / días productivos). Cobro estimado en M+${d}: ${R.cobro.habiles} días hábiles entre emisión, conformidad del administrador y pago. Tesorería ${R.incluirPersonal ? "con" : "<b>sin</b>"} gastos de personal (configurable en Parámetros).</p>
+      <p class="lead">Pagos mensuales de los servicios devengados, a mes vencido (numeral 15). El devengado de cada mes es proporcional a su coste directo real (honorarios a coste interno, misiones y subcontratas). Cobro estimado en M+${d}: ${R.cobro.habiles} días hábiles entre emisión, conformidad del administrador y pago. Tesorería ${R.incluirPersonal ? "con" : "<b>sin</b>"} gastos de personal (configurable en Parámetros).</p>
       ${R.avisos.filter((a) => a.txt.startsWith("Meses facturables")).map((a) => `<div class="avisos"><div class="aviso info">${esc(a.txt)}</div></div>`).join("")}
       <div class="card"><div class="card-h">Calendario de facturación <span class="hint">Entregable en granate · producto bajo demanda en ocre</span></div><div class="card-b flush scroll"><table>
-        <tr><th>Mes devengado</th><th class="n">Coste real del mes</th><th class="n">Devengado sin IVA</th><th class="n">% contrato</th><th class="n">Factura IVA incl.</th><th class="n">Factura MXN</th><th class="c">Emisión</th><th class="c">Cobro</th><th>Soporte de la conformidad</th></tr>
+        <tr><th>Mes devengado</th><th class="n">Coste del mes</th><th class="n">Devengado sin IVA</th><th class="n">% contrato</th><th class="n">Factura IVA incl.</th><th class="n">Factura MXN</th><th class="c">Emisión</th><th class="c">Cobro</th><th>Soporte de la conformidad</th></tr>
         ${filas}
         <tr class="tot"><td>Total</td><td class="n">${fmtEur(R.costeReal)}</td><td class="n">${fmtEur(R.pvpNeto)}</td><td class="n">100 %</td><td class="n">${fmtEur(R.pvpIva)}</td><td class="n">${fmtMxn(R.pvpIva * tc())}</td><td colspan="3"></td></tr>
       </table></div></div>
